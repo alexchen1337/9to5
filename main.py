@@ -1,10 +1,10 @@
 import pygame
-from player import Player
+from Player import Player
 from IntroScreen import IntroScreen
 
 # Initialize Pygame
 pygame.init()
-FPS = 60
+FPS = 240
 font_path = "./assets/pixel.ttf"
 font_size = 36
 game_font = pygame.font.Font(font_path, font_size)

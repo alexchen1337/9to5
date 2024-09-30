@@ -1,0 +1,48 @@
+﻿Items: 
+* Note: There will be no items for salary or savings account, each item is listed in ascending order in price but also effectiveness (i,e. Greek Yogurt costs less than Vegetable Juice but is less effective in restoring health)
+* Health
+* Greek Yogurt
+* Vegetable Juice
+* Salad
+* Chicken & Rice
+* Family Happiness
+* Flowers
+* Superhero Toy
+* Children's Bike
+* Jewelry 
+* Energy
+* Tea
+* Coffee
+* Caffeine Pills
+* Crushed-up White Substance
+
+
+Meters:
+* Health Bar
+* Salary
+* Family Happiness
+* Energy
+* Savings Account
+
+
+* Note: We should make the items a crucial part of the game so the player has to spend money from their savings account. However, we should also note that it should be almost impossible to complete all tasks as they will trigger events that we will come up with but also need to make the game hard in general.
+
+
+Hidden Meters:
+* Note: I want to implement hidden meters; boss happiness, coworker happiness so your interactions matter with NPCs. For example, if you keep your boss 100% happy then he will never fight you.
+
+
+Events
+* I was thinking that for events we should have a few options for tasks you always need to complete, like everyday you HAVE to do an excel sheet, make coffee for your boss, taking notes from meetings, sorting and responding to emails, proofreading documents and fixing them.
+* Failure to complete all daily tasks results in a small decline in salary
+* We should also have events that are chooseable at the end of every day or start, such as getting more rest which will give a boost in energy but risk being late to work, or choosing to work overtime which will increase salary but risk family happiness.
+* I also want to implement a calendar so that you have to attend certain events such as meetings and if you miss them then you get a large salary degrade
+* List of Events
+* Boss Fight (fight your boss, can figure out details on how complex we want the fight to be later)
+* Excel Sheet Challenge (put in an excel GUI where you have to move elements around with arrow keys and enter in a timely manner or fail)
+* Printing Paper Challenge (run around the office and hand out papers in a timely manner or fail)
+* Proofreading Documents (compare documents and fix errors, if error still exists after proofreading you fail)
+* Going through emails and replying to non-scam ones ( if sender is fake or has a slight typo, make it so you fail the challenge and your boss gets mad at you)
+* Taking notes from meeting (typing test)
+* Napping by Accident and Fighting a Mythical Monster in Dream (similar to boss fight but instead it can be a dragon or something lol) 
+* Wife Visits Office (has a chance of happening while you talk to your coworker, if your wife catches you then family happiness goes down)

@@ -1,5 +1,5 @@
 import pygame
-from Player import Player
+from player import Player
 from IntroScreen import IntroScreen
 
 # Initialize Pygame

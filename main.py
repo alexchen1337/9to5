@@ -2,7 +2,7 @@ import pygame
 from player import Player
 from IntroScreen import IntroScreen
 
-# Initialize Pygame
+# Initialize Pygame.
 pygame.init()
 FPS = 45
 font_path = "./assets/pixel.ttf"

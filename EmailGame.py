@@ -22,13 +22,12 @@ class Meter:
         self.value = max(0, self.value - amount)
 
     def draw(self, screen, pos):
-        # Draw the meter as a bar
         bar_width = 200
         bar_height = 30
         fill_ratio = self.value / self.max_value
-        fill_color = RED if self.name == "Boss Happiness" else BLUE  # Red for boss happiness, blue for salary
-        pygame.draw.rect(screen, GRAY, (pos[0], pos[1], bar_width, bar_height))  # Grey background
-        pygame.draw.rect(screen, fill_color, (pos[0], pos[1], bar_width * fill_ratio, bar_height))  # Fill based on value
+        fill_color = RED if self.name == "Boss Happiness" else BLUE
+        pygame.draw.rect(screen, GRAY, (pos[0], pos[1], bar_width, bar_height))
+        pygame.draw.rect(screen, fill_color, (pos[0], pos[1], bar_width * fill_ratio, bar_height))
 
 class EmailGame:
     def __init__(self, screen, boss_happiness_meter, salary_meter, font):
@@ -41,35 +40,32 @@ class EmailGame:
         self.create_emails()
 
         self.current_email_index = 0
-        self.reply_mode = False  # Track if we are in reply mode
-        self.response_options = []  # Store response options for replies
-        self.show_no_response_text = False  # Flag to control no response text visibility
+        self.reply_mode = False
+        self.response_options = []
+        self.show_no_response_text = False
 
     def create_emails(self):
-        # Create a list of sample emails with varied content
-        sample_contents = [
-            "Subject: Project Update\n\nHi Team,\nPlease find attached the project update. Let me know if you have any questions.\nBest,\nManager",
-            "Subject: Quick Reminder\n\nHello,\nJust a reminder to submit your reports by end of day tomorrow.\nThanks!",
-            "Subject: Request for Feedback\n\nHi,\nCould you please review the attached document and provide your feedback? Thank you!",
-            "Subject: Team Lunch\n\nHey everyone,\nWe are planning a team lunch this Friday. Please RSVP if you can make it.\nCheers!",
-            "Subject: Important Notice\n\nDear Team,\nThis is to inform you about the upcoming policy changes. Please read the details carefully.",
-            "Subject: Share This\n\nHi,\nCould you please share this document with others? It's important for our next meeting.\nThanks!",
-            "Subject: Meeting Reschedule\n\nHello,\nThe meeting has been rescheduled to next week. Please check your calendars.\nBest regards.",
-            "Subject: Client Request\n\nHi,\nWe received a request from the client for additional features. Let's discuss this in our next meeting.",
-            "Subject: Thank You\n\nThank you for your hard work on the last project. It was a great success!",
-            "Subject: New Policy Update\n\nPlease read the new policy document and let me know your thoughts."
+        # Email samples with various actions
+        sample_emails = [
+            {"content": "Subject: Project Update\n\nHi Team,\nPlease find attached the project update.", "type": "reply", "responses": ["I'll review it right away!", "I don’t have time for this now."]},
+            {"content": "Subject: Quick Reminder\n\nReminder to submit your reports by tomorrow.", "type": "reply", "responses": ["Thanks for the reminder!", "I’ll submit it next week."]},
+            {"content": "Subject: Discount on Extended Car Warranty!\n\nGet 50% off now!", "type": "spam"},
+            {"content": "Subject: Share This with the Marketing Team\n\nHi, please share this document with the marketing team.", "type": "forward", "responses": ["I’ll forward it to the team.", "I don’t think anyone else needs this."]},
+            {"content": "Subject: Meeting Reschedule\n\nThe meeting has been rescheduled.", "type": "reply", "responses": ["Thanks, I’ll update my calendar.", "I’ll just skip the meeting."]},
+            {"content": "Subject: Free Vacation Prize!\n\nClaim your free vacation to Hawaii!", "type": "spam"},
+            {"content": "Subject: Client Feedback\n\nPlease forward this to the client for review.", "type": "forward", "responses": ["I’ll forward it right away.", "I don’t think they need this."]},
+            {"content": "Subject: Important Notice\n\nPolicy changes are now live. Read carefully.", "type": "reply", "responses": ["I’ll read the changes.", "Not interested in policies."]},
         ]
 
-        # Create email structure with response options
-        for content in sample_contents:
-            email_type = random.choice(['reply', 'forward', 'delete'])  # Randomly assign type
-            email = {
-                'content': content,
-                'type': email_type
-            }
-            self.emails.append(email)
+        for email_data in sample_emails:
+            self.emails.append(email_data)
 
     def display_email(self):
+        if self.current_email_index >= len(self.emails):
+            print("Game Over! You have processed all emails.")
+            pygame.quit()
+            return
+
         email = self.emails[self.current_email_index]
         self.screen.fill(DARK_GRAY)
 
@@ -79,7 +75,7 @@ class EmailGame:
             text_surface = self.font.render(line, True, WHITE)
             self.screen.blit(text_surface, (20, 50 + i * 30))
 
-        # Display buttons
+        # Display action buttons
         reply_button = self.font.render("Reply (R)", True, WHITE)
         forward_button = self.font.render("Forward (F)", True, WHITE)
         delete_button = self.font.render("Delete (D)", True, WHITE)
@@ -89,13 +85,13 @@ class EmailGame:
 
         # Show reply options if in reply mode
         if self.reply_mode:
-            if self.response_options:  # Check if response options are available
+            if self.response_options:
                 response1 = self.font.render("1. " + self.response_options[0], True, WHITE)
                 response2 = self.font.render("2. " + self.response_options[1], True, WHITE)
                 self.screen.blit(response1, (20, 450))
                 self.screen.blit(response2, (20, 490))
             else:
-                self.show_no_response_text = True  # Set flag to show no response text
+                self.show_no_response_text = True
 
         # Display "No response options available" text if applicable
         if self.show_no_response_text:
@@ -110,13 +106,32 @@ class EmailGame:
         keys = pygame.key.get_pressed()
         if keys[pygame.K_r]:  # Reply
             self.reply_mode = True
-            self.response_options = ["I'll review this file", "I'll review the wrong file"]  # Example responses
+            if self.emails[self.current_email_index]["type"] == "reply":
+                self.response_options = self.emails[self.current_email_index]["responses"]
+            else:
+                print("Incorrect action! This email is not for replying.")
+                self.boss_happiness_meter.decrease(10)
+                self.show_no_response_text = True
 
         elif keys[pygame.K_f]:  # Forward
-            self.forward_email()
+            if self.emails[self.current_email_index]["type"] == "forward":
+                print("Email forwarded successfully.")
+                self.boss_happiness_meter.value = min(self.boss_happiness_meter.max_value, self.boss_happiness_meter.value + 10)
+            else:
+                print("Incorrect action! This email is not for forwarding.")
+                self.boss_happiness_meter.decrease(10)
+            self.show_no_response_text = False
+            self.current_email_index += 1
 
         elif keys[pygame.K_d]:  # Delete
-            self.delete_email()
+            if self.emails[self.current_email_index]["type"] == "spam":
+                print("Spam deleted.")
+                self.salary_meter.value = min(self.salary_meter.max_value, self.salary_meter.value + 10)
+            else:
+                print("Incorrect action! This email is not spam.")
+                self.boss_happiness_meter.decrease(10)
+            self.show_no_response_text = False
+            self.current_email_index += 1
 
         if self.reply_mode:
             if keys[pygame.K_1]:  # First response option
@@ -126,47 +141,26 @@ class EmailGame:
 
     def reply_to_email(self, option_index):
         email = self.emails[self.current_email_index]
-        if option_index == 0:  # Correct response
-            print("Correct response!")
-            self.boss_happiness_meter.value = min(self.boss_happiness_meter.max_value, self.boss_happiness_meter.value + 10)  # Increase happiness
-        else:  # Incorrect response
-            print("Incorrect response!")
-            self.boss_happiness_meter.decrease(10)  # Decrease boss happiness
+        if email["type"] == "reply":
+            if option_index == 0:  # Correct response
+                print("Correct response!")
+                self.boss_happiness_meter.value = min(self.boss_happiness_meter.max_value, self.boss_happiness_meter.value + 10)
+            else:  # Incorrect response
+                print("Incorrect response!")
+                self.boss_happiness_meter.decrease(10)
 
         self.reply_mode = False
-        self.show_no_response_text = False  # Reset flag when replying
-        self.current_email_index += 1  # Move to the next email
-        if self.current_email_index >= len(self.emails):
-            # End the game after processing all emails
-            print("Game Over! You have processed all emails.")
-            pygame.quit()  # Quit the game
-
-    def forward_email(self):
-        print("Email forwarded.")
-        self.show_no_response_text = False  # Reset flag when forwarding
+        self.show_no_response_text = False
         self.current_email_index += 1
         if self.current_email_index >= len(self.emails):
-            # End the game after processing all emails
             print("Game Over! You have processed all emails.")
-            pygame.quit()  # Quit the game
-
-    def delete_email(self):
-        print("Email deleted.")
-        # Decrease boss happiness when an email is deleted incorrectly
-        if self.emails[self.current_email_index]['type'] != 'delete':
-            self.boss_happiness_meter.decrease(10)  # Decrease happiness if not a delete email
-        self.show_no_response_text = False  # Reset flag when deleting
-        self.current_email_index += 1
-        if self.current_email_index >= len(self.emails):
-            # End the game after processing all emails
-            print("Game Over! You have processed all emails.")
-            pygame.quit()  # Quit the game
+            pygame.quit()
 
 def main():
-    # Create the screen and font
-    screen = pygame.display.set_mode((800, 600))  # Standard resolution
+    # Initialize screen and font
+    screen = pygame.display.set_mode((800, 600))
     pygame.display.set_caption("Email Game")
-    font = pygame.font.Font(None, 24)  # Default font with size 24
+    font = pygame.font.Font(None, 24)
 
     # Create meters
     boss_happiness_meter = Meter("Boss Happiness", 100)
@@ -178,21 +172,28 @@ def main():
     # Main game loop
     running = True
     clock = pygame.time.Clock()
+    
     while running:
+        # Check for quit event
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
+        # Handle input and update game state
         email_game.handle_input()
-        email_game.display_email()
 
+        # Check if the game is over (i.e., all emails processed)
         if email_game.current_email_index >= len(email_game.emails):
-            # End the game after processing all emails
-            running = False
+            print("Game Over! You have processed all emails.")
+            running = False  # Stop the loop
+            continue  # Skip display update if game is over
 
-        pygame.display.flip()  # Update the display
-        clock.tick(30)  # Frame rate
+        # Display current email and update the display
+        email_game.display_email()
+        pygame.display.flip()
+        clock.tick(30)
 
+    # Clean up and quit Pygame after the loop ends
     pygame.quit()
 
 if __name__ == "__main__":

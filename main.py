@@ -1,5 +1,5 @@
 import pygame
-from player import Player
+from Player import Player
 from IntroScreen import IntroScreen
 from Meter import Meter  # Import your Meter class
 
@@ -13,7 +13,7 @@ text_color = (255, 255, 255)  # White text
 
 # Create a resizable window
 screen_info = pygame.display.Info()
-SCREEN_WIDTH, SCREEN_HEIGHT = screen_info.current_w, screen_info.current_h
+SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE | pygame.SCALED)
 
 # Sprite options
@@ -48,12 +48,6 @@ player = Player(selected_sprite, scale_factor=8, screen_width=SCREEN_WIDTH, scre
 player_group = pygame.sprite.Group()
 player_group.add(player)
 
-# Create meters
-health_meter = Meter("Health", max_value=100)
-energy_meter = Meter("Energy", max_value=100)
-family_happiness_meter = Meter("Family Happiness", max_value=100)
-boss_happiness_meter = Meter("Boss Happiness", max_value=100, hidden=True)
-wife_happiness_meter = Meter("Wife Happiness", max_value=100, hidden=True)
 
 # Function to draw a bar on the screen
 def draw_meter(screen, meter, x, y, width=200, height=20, color=(0, 255, 0)):
@@ -96,19 +90,6 @@ while running:
     # Draw the player
     player_group.draw(screen)
 
-    # Draw meters
-    draw_meter(screen, health_meter, 20, 20)
-    draw_meter(screen, energy_meter, 20, 60)
-    draw_meter(screen, family_happiness_meter, 20, 100)
-    
-    # Draw Boss Happiness in red if it's below 20%
-    if boss_happiness_meter.value < 0.2 * boss_happiness_meter.max_value:
-        draw_meter(screen, boss_happiness_meter, 20, 140, color=(255, 0, 0))  # Red color for Boss Happiness
-
-    # Draw Wife Happiness if it's below 20%
-    if wife_happiness_meter.value < 0.2 * wife_happiness_meter.max_value:
-        draw_meter(screen, wife_happiness_meter, 20, 180)
-
     # Update the display
     pygame.display.flip()
 
@@ -117,4 +98,3 @@ while running:
 
 # Quit Pygame
 pygame.quit()
-

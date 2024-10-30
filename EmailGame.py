@@ -1,9 +1,10 @@
 import pygame
 import random
+from Relationships import RelationshipGraph  # Assuming this is the file name
 
-
-# Initialize Pygame
+# Initialize Pygame and RelationshipGraph
 pygame.init()
+relationship_graph = RelationshipGraph()
 
 # Screen setup
 WIDTH, HEIGHT = 800, 600
@@ -100,6 +101,16 @@ def draw_text(text, x, y):
     label = FONT.render(text, True, (0, 0, 0))
     screen.blit(label, (x, y))
 
+# Function to evaluate performance at the end of the game
+def evaluate_performance():
+    if correct_choices >= 8:
+        relationship_graph.increase_relationship("player", "boss", 10)
+        print("Boss happiness increased due to good performance!")
+    else:
+        relationship_graph.decrease_relationship("player", "boss", 10)
+        print("Boss happiness decreased due to poor performance!")
+    relationship_graph.check_thresholds()
+
 # Game loop
 running = True
 while running:
@@ -110,6 +121,7 @@ while running:
         draw_text(f"Game Over! Correct Choices: {correct_choices} out of {total_emails}", 200, 300)
         pygame.display.flip()
         pygame.time.wait(3000)
+        evaluate_performance()  # Evaluate performance at the end
         running = False
         continue
 
@@ -149,17 +161,26 @@ while running:
                                 waiting_for_reply = False
 
             elif event.key == pygame.K_2 and email["action"] == "forward":
-                draw_text("Correct! Email forwarded.", 50, 250)
-                correct_choices += 1
-                current_email_index += 1
+                if email["action"] == "forward":
+                    draw_text("Correct! Email forwarded.", 50, 250)
+                    correct_choices += 1
+                    current_email_index += 1
+                else:
+                    draw_text("Incorrect choice.", 50, 250)
+                    current_email_index += 1
 
             elif event.key == pygame.K_3 and email["action"] == "delete":
-                draw_text("Correct! Email deleted.", 50, 250)
-                correct_choices += 1
-                current_email_index += 1
+                if email["action"] == "delete":
+                    draw_text("Correct! Email deleted.", 50, 250)
+                    correct_choices += 1
+                    current_email_index += 1
+                else:
+                    draw_text("Incorrect choice.", 50, 250)
+                    current_email_index += 1
+
             else:
                 draw_text("Incorrect choice. Try again.", 50, 250)
-                current_email_index += 1  # Move to next email even if wrong choice
+                current_email_index += 1
 
             pygame.display.flip()
             pygame.time.wait(1000)  # Pause before moving to the next email

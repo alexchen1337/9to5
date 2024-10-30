@@ -1,5 +1,5 @@
 import pygame
-from player import Player
+from Player import Player
 from IntroScreen import IntroScreen
 from Meter import Meter  # Import your Meter class
 
@@ -89,19 +89,6 @@ while running:
 
     # Draw the player
     player_group.draw(screen)
-
-    # Draw meters
-    draw_meter(screen, health_meter, 20, 20)
-    draw_meter(screen, energy_meter, 20, 60)
-    draw_meter(screen, family_happiness_meter, 20, 100)
-    
-    # Draw Boss Happiness in red if it's below 20%
-    if boss_happiness_meter.value < 0.2 * boss_happiness_meter.max_value:
-        draw_meter(screen, boss_happiness_meter, 20, 140, color=(255, 0, 0))  # Red color for Boss Happiness
-
-    # Draw Wife Happiness if it's below 20%
-    if wife_happiness_meter.value < 0.2 * wife_happiness_meter.max_value:
-        draw_meter(screen, wife_happiness_meter, 20, 180)
 
     # Update the display
     pygame.display.flip()

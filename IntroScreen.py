@@ -47,7 +47,7 @@ class IntroScreen:
         # Render instructions
         instructions = "Use LEFT/RIGHT to choose, ENTER to confirm"
         instructions_surface = self.small_font.render(instructions, True, (255, 255, 255))
-        instructions_rect = instructions_surface.get_rect(center=(self.screen.get_width() / 2, self.screen.get_height() - 450))
+        instructions_rect = instructions_surface.get_rect(center=(self.screen.get_width() / 2, self.screen.get_height() - 250))
         self.screen.blit(instructions_surface, instructions_rect)
 
         # Render the credits

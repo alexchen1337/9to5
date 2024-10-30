@@ -1,6 +1,6 @@
 import pygame
 import random
-from Meter import Meter  # Import the Meter class from Meter.py
+
 
 # Initialize Pygame
 pygame.init()
@@ -89,81 +89,81 @@ emails = [
 random.shuffle(emails)
 game_emails = emails[:10]
 
-# Initialize meters for salary and boss happiness
-salary_meter = Meter("Salary", max_value=100, min_value=0)
-boss_happiness_meter = Meter("Boss Happiness", max_value=100, min_value=0)
+# Game variables
+current_email_index = 0
+correct_choices = 0
+total_emails = len(game_emails)
+game_over = False
+
+# Text drawing helper
+def draw_text(text, x, y):
+    label = FONT.render(text, True, (0, 0, 0))
+    screen.blit(label, (x, y))
 
 # Game loop
 running = True
-email_index = 0
-score = 0
-
 while running:
+    screen.fill((255, 255, 255))
+
+    # Check if game is over
+    if current_email_index >= total_emails:
+        draw_text(f"Game Over! Correct Choices: {correct_choices} out of {total_emails}", 200, 300)
+        pygame.display.flip()
+        pygame.time.wait(3000)
+        running = False
+        continue
+
+    # Get current email
+    email = game_emails[current_email_index]
+
+    # Display email content
+    draw_text(f"Subject: {email['subject']}", 50, 50)
+    draw_text(f"Content: {email['content']}", 50, 100)
+    draw_text("Choose an action: [1] Reply [2] Forward [3] Delete", 50, 200)
+
+    # Event handling
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_1 and email["action"] == "reply":
+                # Show reply options
+                draw_text(f"Reply Options: [A] {email['reply_options'][0]} [B] {email['reply_options'][1]}", 50, 250)
+                pygame.display.flip()
 
-    # Clear screen
-    screen.fill((255, 255, 255))
+                # Wait for user to choose reply option
+                waiting_for_reply = True
+                while waiting_for_reply:
+                    for reply_event in pygame.event.get():
+                        if reply_event.type == pygame.KEYDOWN:
+                            if reply_event.key in [pygame.K_a, pygame.K_b]:
+                                selected_reply = 0 if reply_event.key == pygame.K_a else 1
+                                if selected_reply == email["correct_reply"]:
+                                    draw_text("Correct Reply!", 50, 300)
+                                    correct_choices += 1
+                                else:
+                                    draw_text("Incorrect Reply.", 50, 300)
+                                current_email_index += 1
+                                waiting_for_reply = False
+                            elif reply_event.key == pygame.K_ESCAPE:
+                                waiting_for_reply = False
 
-    # Display email subject and content
-    email = game_emails[email_index]
-    subject_text = FONT.render(email["subject"], True, (0, 0, 0))
-    content_text = FONT.render(email["content"], True, (0, 0, 0))
-    screen.blit(subject_text, (20, 20))
-    screen.blit(content_text, (20, 60))
+            elif event.key == pygame.K_2 and email["action"] == "forward":
+                draw_text("Correct! Email forwarded.", 50, 250)
+                correct_choices += 1
+                current_email_index += 1
 
-    # Display options for reply or action
-    if email["action"] == "reply":
-        for i, option in enumerate(email["reply_options"]):
-            option_text = FONT.render(f"{i + 1}. {option}", True, (0, 0, 0))
-            screen.blit(option_text, (20, 120 + i * 30))
+            elif event.key == pygame.K_3 and email["action"] == "delete":
+                draw_text("Correct! Email deleted.", 50, 250)
+                correct_choices += 1
+                current_email_index += 1
+            else:
+                draw_text("Incorrect choice. Try again.", 50, 250)
+                current_email_index += 1  # Move to next email even if wrong choice
 
-    # Display meters
-    salary_meter.draw(screen)
-    boss_happiness_meter.draw(screen)
+            pygame.display.flip()
+            pygame.time.wait(1000)  # Pause before moving to the next email
 
     pygame.display.flip()
 
-    # Wait for user input (1, 2, 3, or 4)
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_1] and email["action"] == "reply":
-        reply_index = 0  # Assume first option is selected
-    elif keys[pygame.K_2] and email["action"] == "reply":
-        reply_index = 1  # Assume second option is selected
-    elif email["action"] == "delete":
-        reply_index = None  # Assume delete action
-    elif email["action"] == "forward":
-        reply_index = None  # Assume forward action
-
-    # Evaluate the player's choice
-    if email["action"] == "reply" and reply_index is not None:
-        if reply_index == email["correct_reply"]:
-            score += 10
-            salary_meter.increase(5)  # Increase salary by 5
-            boss_happiness_meter.increase(10)  # Increase boss happiness by 10
-        else:
-            score -= 5
-            salary_meter.decrease(5)  # Decrease salary by 5
-            boss_happiness_meter.decrease(10)  # Decrease boss happiness by 10
-    elif email["action"] == "delete":
-        score += 5
-        boss_happiness_meter.increase(5)  # Increase boss happiness by 5
-    elif email["action"] == "forward":
-        score += 2
-        boss_happiness_meter.increase(2)  # Increase boss happiness by 2
-
-    # Move to the next email or end the game
-    email_index += 1
-    if email_index >= len(game_emails):
-        running = False  # End game if all emails are processed
-
-# Display final score
-screen.fill((255, 255, 255))
-final_score_text = FONT.render(f"Final Score: {score}", True, (0, 0, 0))
-screen.blit(final_score_text, (WIDTH // 2 - final_score_text.get_width() // 2, HEIGHT // 2))
-pygame.display.flip()
-
-# Wait for a while before quitting
-pygame.time.wait(3000)
 pygame.quit()

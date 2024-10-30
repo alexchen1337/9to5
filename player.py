@@ -14,9 +14,10 @@ class Player(pygame.sprite.Sprite):
         
         self.speed = 8  # Player speed
         
-        # Set players meters to default 100
+        # Set players meters to default
         self.health = Meter("Health", 100)
         self.energy = Meter("Energy", 100)
+        self.checkings = Meter("Checkings", 300)
     
     def update(self, keys_pressed, screen_width, screen_height):
         # Horizontal movement

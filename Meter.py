@@ -10,11 +10,11 @@ class Meter:
 
     def increase(self, amount):
         self.history.append(self.value)
-        self.value = min(self.max_value, self.value + amount)
+        self.value = self.value + amount
 
     def decrease(self, amount):
-        self.history.append(self.value)
-        self.value = max(self.min_value, self.value - amount)
+        self.history.append(-1*self.value)
+        self.value = self.value = self.value - amount
 
     def is_depleted(self):
         return self.value <= self.min_value

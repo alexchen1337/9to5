@@ -21,10 +21,10 @@ class Store():
             Item("Children's Bike", 15, 'Family Happiness', 15),
             Item('Jewelry',         20, 'Family Happiness', 20),
 
-            Item('Tea',                         5, 'Energy',  5),
-            Item('Coffee',                     10, 'Energy', 10),
-            Item('Caffeine Pills',             15, 'Energy', 15),
-            Item('Crushed-up White Substance', 20, 'Energy', 20)
+            Item('Tea',              5, 'Energy',  5),
+            Item('Coffee',          10, 'Energy', 10),
+            Item('Caffeine Pills',  15, 'Energy', 15),
+            Item('Sugar',           20, 'Energy', 20)
         }
         
     def buy_item(self, player, item_name):

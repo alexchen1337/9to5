@@ -2,6 +2,7 @@ import pygame
 from Player import Player
 from IntroScreen import IntroScreen
 from Meter import Meter  # Import your Meter class
+from StoreRunner import runStore
 
 # Initialize Pygame
 pygame.init()
@@ -70,6 +71,7 @@ clock = pygame.time.Clock()
 # Main game loop
 running = True
 clock = pygame.time.Clock()
+storeRunning = False
 
 while running:
     for event in pygame.event.get():
@@ -96,5 +98,11 @@ while running:
     # Limit the frame rate
     clock.tick(FPS)
 
+    if keys_pressed[pygame.K_e]:  # Enter the store
+        storeRunning = runStore(screen, game_font)
+        if storeRunning == False:  # Exited the store, return to the game
+            storeRunning = False
+
+    
 # Quit Pygame
 pygame.quit()

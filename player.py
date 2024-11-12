@@ -15,26 +15,27 @@ class Player(pygame.sprite.Sprite):
         self.speed = 8  # Player speed
         
         # Set players meters to default
-        self.health = Meter("Health", 100)
-        self.energy = Meter("Energy", 100)
-        self.checkings = Meter("Checkings", 300)
+        self.health = Meter.Meter("Health", 100)
+        self.energy = Meter.Meter("Energy", 100)
+        self.checkings = Meter.Meter("Checkings", 300)
     
     def update(self, keys_pressed, screen_width, screen_height):
+        energyConsumption = 0.05
         # Horizontal movement
         if keys_pressed[pygame.K_LEFT]:
             self.rect.x -= self.speed
-            self.energy.decrease(.1)
+            self.energy.decrease(energyConsumption)
         if keys_pressed[pygame.K_RIGHT]:
             self.rect.x += self.speed
-            self.energy.decrease(.1)
+            self.energy.decrease(energyConsumption)
 
         # Vertical movement
         if keys_pressed[pygame.K_UP]:
             self.rect.y -= self.speed
-            self.energy.decrease(.1)
+            self.energy.decrease(energyConsumption)
         if keys_pressed[pygame.K_DOWN]:
             self.rect.y += self.speed
-            self.energy.decrease(.1)
+            self.energy.decrease(energyConsumption)
 
         # Boundary checks to prevent moving off-screen
         if self.rect.left < 0:

@@ -8,7 +8,7 @@ WIDTH, HEIGHT = 1280, 720  # Screen dimensions for 1280x720 resolution
 BG_COLOR = (160, 160, 160)
 BUTTON_COLOR = (0, 128, 255)
 TEXT_COLOR = (255, 255, 255)
-FONT = None
+# FONT = None
 ERROR_COLOR = (255, 0, 0)
 
 # Store and Meters
@@ -109,24 +109,24 @@ def runStore(screen, font):
         buttons = []
         x_positions = [100, 500, 900]  # X positions for Health, Energy, and Family Happiness columns
         y_offset = 100  # Initial Y offset for the first button
-        x_offset = 45   # Initial X offset used for alignment
+        x_offset = 75   # Initial X offset used for alignment
 
         # Display Health items in the first column
-        display_text(screen, "Health Items", x_positions[0] + x_offset, y_offset / 2, font)
+        display_text(screen, "Health Items", x_positions[0] + x_offset - 25, y_offset / 2, font)
         for i, item in enumerate(health_items):
-            button = create_button_with_image(screen, x_positions[0] - x_offset, y_offset + i * 70, 275, 50, item, font)
+            button = create_button_with_image(screen, x_positions[0] - x_offset, y_offset + i * 70, 335, 50, item, font)
             buttons.append((button, item))
 
         # Display Energy items in the second column
-        display_text(screen, "Energy Items", x_positions[1] + x_offset, y_offset / 2, font)
+        display_text(screen, "Energy Items", x_positions[1] + x_offset - 25, y_offset / 2, font)
         for i, item in enumerate(energy_items):
-            button = create_button_with_image(screen, x_positions[1] - x_offset, y_offset + i * 70, 275, 50, item, font)
+            button = create_button_with_image(screen, x_positions[1] - x_offset, y_offset + i * 70, 335, 50, item, font)
             buttons.append((button, item))
 
         # Display Family Happiness items in the third column
-        display_text(screen, "Family Happiness Items", x_positions[2], y_offset / 2, font)
+        display_text(screen, "Family Happiness Items", x_positions[2] - 50, y_offset / 2, font)
         for i, item in enumerate(family_items):
-            button = create_button_with_image(screen, x_positions[2] - x_offset, y_offset + i * 70, 275, 50, item, font)
+            button = create_button_with_image(screen, x_positions[2] - x_offset, y_offset + i * 70, 335, 50, item, font)
             buttons.append((button, item))
 
         # Display the insufficient funds message if it exists

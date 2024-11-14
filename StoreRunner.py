@@ -2,32 +2,19 @@ import pygame
 import os
 from store import Store
 from Meter import Meter
+from Player import Player
 
 # Constants
 WIDTH, HEIGHT = 1280, 720  # Screen dimensions for 1280x720 resolution
 BG_COLOR = (160, 160, 160)
 BUTTON_COLOR = (0, 128, 255)
 TEXT_COLOR = (255, 255, 255)
-# FONT = None
 ERROR_COLOR = (255, 0, 0)
 
-# Store and Meters
+# Store
 store = Store()
-health_meter = Meter("Health", 100)
-energy_meter = Meter("Energy", 100)
 family_meter = Meter("Family Happiness", 100)
-
-# Decreased for testing
-health_meter.decrease(50)
-energy_meter.decrease(50)
 family_meter.decrease(50)
-
-# Player with money
-class Player:
-    def __init__(self, money):
-        self.money = money
-
-player = Player(50)  # Example: Start with $50
 
 # Separate items by type and sort by price
 health_items = sorted([item for item in store.items if item.type == "Health"], key=lambda x: x.price)
@@ -65,16 +52,16 @@ insufficient_funds_message = ""
 message_display_counter = 0  # Counter to control message display duration
 
 # Event handling for purchasing items
-def handle_purchase(item):
+def handle_purchase(item, player):
     global insufficient_funds_message, message_display_counter
-    if player.money >= item.price:  # Check if player can afford the item
-        player.money -= item.price  # Deduct the price
+    if player.checkings.get_value() >= item.price:  # Check if player can afford the item
+        player.checkings.decrease(item.price)  # Deduct the price
 
         # Adjust the appropriate meter
         if item.type == "Health":
-            health_meter.increase(item.magnitude)
+            player.health.increase(item.magnitude)
         elif item.type == "Energy":
-            energy_meter.increase(item.magnitude)
+            player.energy.increase(item.magnitude)
         elif item.type == "Family Happiness":
             family_meter.increase(item.magnitude)
         
@@ -86,8 +73,7 @@ def handle_purchase(item):
         message_display_counter = 60  # Display message for 60 frames
 
 # Main loop
-def runStore(screen, font):
-    
+def runStore(screen, font, player):
     global message_display_counter, insufficient_funds_message
     running = True
     while running:
@@ -103,7 +89,7 @@ def runStore(screen, font):
                 x, y = event.pos
                 for button, item in buttons:
                     if button.collidepoint(x, y):
-                        handle_purchase(item)
+                        handle_purchase(item, player)
 
         # Create and display buttons with images for each type in separate columns
         buttons = []
@@ -135,10 +121,10 @@ def runStore(screen, font):
             message_display_counter -= 1
 
         # Display meter values and player money
-        display_text(screen, f"Health: {health_meter.get_value()}", x_positions[0] + x_offset, HEIGHT - 100, font)
-        display_text(screen, f"Energy: {energy_meter.get_value()}", x_positions[1] + x_offset, HEIGHT - 100, font)
-        display_text(screen, f"Family Happiness: {family_meter.get_value()}", x_positions[2], HEIGHT - 100, font)
-        display_text(screen, f"Money: ${player.money}", x_positions[1] + x_offset, HEIGHT - 50, font)
+        display_text(screen, f"Health: {player.health.get_value():.0f}", x_positions[0] + x_offset, HEIGHT - 100, font)
+        display_text(screen, f"Energy: {player.energy.get_value():.0f}", x_positions[1] + x_offset, HEIGHT - 100, font)
+        display_text(screen, f"Family Happiness: {family_meter.get_value():.0f}", x_positions[2], HEIGHT - 100, font)
+        display_text(screen, f"Money: ${player.checkings.get_value():.2f}", x_positions[1] + x_offset, HEIGHT - 50, font)
 
         pygame.display.flip()
 
@@ -146,5 +132,3 @@ def runStore(screen, font):
 def display_text(screen, text, x, y, font, color=(0, 0, 0)):
     text_surface = font.render(text, True, color)
     screen.blit(text_surface, (x, y))
-
-

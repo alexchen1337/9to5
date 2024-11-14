@@ -99,7 +99,7 @@ while running:
     clock.tick(FPS)
 
     if keys_pressed[pygame.K_e]:  # Enter the store
-        storeRunning = runStore(screen, game_font)
+        storeRunning = runStore(screen, game_font, player)
         if storeRunning == False:  # Exited the store, return to the game
             storeRunning = False
 

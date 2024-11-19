@@ -1,6 +1,7 @@
 import pygame
 from Player import Player
 from IntroScreen import IntroScreen
+from EndScreen import EndScreen
 from Meter import Meter  # Import your Meter class
 from StoreRunner import runStore
 
@@ -92,10 +93,10 @@ while running:
     # Screen transition logic
     if (current_screen == 1 and player.rect.right >= SCREEN_WIDTH):
         current_screen = 2
-        player.rect.left = 0
+        player.rect.left = 0 + 10
     elif (current_screen == 2 and player.rect.left <= 0):
         current_screen = 1
-        player.rect.right = SCREEN_WIDTH
+        player.rect.right = SCREEN_WIDTH - 10
 
     # Fill the screen with a color
     if (current_screen == 1):
@@ -117,6 +118,23 @@ while running:
         if storeRunning == False:  # Exited the store, return to the game
             storeRunning = False
 
-    
+
+# Create and display the intro screen
+end_screen = EndScreen(screen, selected_sprite)
+end_running = True
+
+# Intro screen loop
+while end_running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            end_running = False
+            pygame.quit()
+            exit()
+        if end_screen.update(event):
+            #selected_sprite = intro_screen.selected_sprite
+            end_running = False
+
+    end_screen.draw()
+
 # Quit Pygame
 pygame.quit()

@@ -1,6 +1,6 @@
 import pygame
 import random
-from Relationships import RelationshipGraph  # Assuming this is the file name
+from Relationships import RelationshipGraph
 
 # Initialize Pygame and RelationshipGraph
 pygame.init()
@@ -104,7 +104,7 @@ def draw_text(text, x, y):
 # Function to evaluate performance at the end of the game
 def evaluate_performance():
     if correct_choices >= 8:
-        relationship_graph.increase_relationship("player", "boss", 10)
+        relationship_graph.increase_relationship("player", "boss", 5)
         print("Boss happiness increased due to good performance!")
     else:
         relationship_graph.decrease_relationship("player", "boss", 10)

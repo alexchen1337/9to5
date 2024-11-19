@@ -4,6 +4,7 @@ from IntroScreen import IntroScreen
 from EndScreen import EndScreen
 from Meter import Meter  # Import your Meter class
 from StoreRunner import runStore
+from TaskList import TaskList
 
 # Initialize Pygame
 pygame.init()
@@ -77,12 +78,32 @@ storeRunning = False
 # Screen managment
 current_screen = 1
 
+# Define the tasks for the office
+tasks = [
+    "Check email responses",
+    "Prepare the presentation",
+    "Call the client",
+    "Complete the report",
+    "Attend the team meeting"
+]
+
+# Initialize the TaskList
+task_list = TaskList(tasks, game_font, x=50, y=50, color=(255, 255, 255))
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             running = False
+        
+        if current_screen == 1 and event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_1:  # Press '1' to toggle task 1
+                task_list.toggle_task(0)
+            elif event.key == pygame.K_2:  # Press '2' to toggle task 2
+                task_list.toggle_task(1)
+            elif event.key == pygame.K_3:  # Press '2' to toggle task 2
+                task_list.toggle_task(2)
 
     # Get key presses for player movement
     keys_pressed = pygame.key.get_pressed()
@@ -94,6 +115,10 @@ while running:
     if (current_screen == 1 and player.rect.right >= SCREEN_WIDTH):
         current_screen = 2
         player.rect.left = 0 + 10
+        task_list.reset_tasks()
+        player.rect.left = 0
+        task_list.reset_tasks()  # Reset tasks when transitioning to home
+
     elif (current_screen == 2 and player.rect.left <= 0):
         current_screen = 1
         player.rect.right = SCREEN_WIDTH - 10
@@ -101,7 +126,9 @@ while running:
     # Fill the screen with a color
     if (current_screen == 1):
         screen.fill((0, 0, 0))  # Black background
+        task_list.draw(screen)  # Draw the task list
     elif (current_screen == 2):
+
         screen.fill((50, 50, 150)) # Dark Blue
 
     # Draw the player

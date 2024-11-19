@@ -73,6 +73,9 @@ running = True
 clock = pygame.time.Clock()
 storeRunning = False
 
+# Screen managment
+current_screen = 1
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -86,8 +89,19 @@ while running:
     # Update player position with boundary checks
     player_group.update(keys_pressed, SCREEN_WIDTH, SCREEN_HEIGHT)
 
+    # Screen transition logic
+    if (current_screen == 1 and player.rect.right >= SCREEN_WIDTH):
+        current_screen = 2
+        player.rect.left = 0
+    elif (current_screen == 2 and player.rect.left <= 0):
+        current_screen = 1
+        player.rect.right = SCREEN_WIDTH
+
     # Fill the screen with a color
-    screen.fill((0, 0, 0))  # Black background
+    if (current_screen == 1):
+        screen.fill((0, 0, 0))  # Black background
+    elif (current_screen == 2):
+        screen.fill((50, 50, 150)) # Dark Blue
 
     # Draw the player
     player_group.draw(screen)

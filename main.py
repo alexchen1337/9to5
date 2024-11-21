@@ -1,5 +1,5 @@
 import pygame
-from Player import Player
+from player import Player
 from IntroScreen import IntroScreen
 from EndScreen import EndScreen
 from Meter import Meter  # Import your Meter class
@@ -66,9 +66,6 @@ def draw_meter(screen, meter, x, y, width=200, height=20, color=(0, 255, 0)):
     text_surface = game_font.render(f"{meter.name}: {meter.value}/{meter.max_value}", True, text_color)
     screen.blit(text_surface, (x, y - font_size))  # Position text above bar
 
-# Main game loop
-running = True
-clock = pygame.time.Clock()
 
 # Main game loop
 running = True
@@ -77,6 +74,11 @@ storeRunning = False
 
 # Screen managment
 current_screen = 1
+
+# Day managment
+current_day = 1
+last_day = 30
+end_text = ""
 
 # Define the tasks for the office
 tasks = [
@@ -91,6 +93,19 @@ tasks = [
 task_list = TaskList(tasks, game_font, x=50, y=50, color=(255, 255, 255))
 
 while running:
+
+    if(current_day > last_day):
+        running = False
+        end_text = "You survived 30 days. Your final balence is : " + player.checkings
+
+    if(player.energy.is_depleted()):
+        running = False
+        end_text = "You should have taken a sabbatical. You ran out of energy."
+
+    if(player.health.is_depleted()):
+        running = False
+        end_text = "You became too stressed, had a heart attack, and put on leave."
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -115,13 +130,12 @@ while running:
     if (current_screen == 1 and player.rect.right >= SCREEN_WIDTH):
         current_screen = 2
         player.rect.left = 0 + 10
-        task_list.reset_tasks()
-        player.rect.left = 0
         task_list.reset_tasks()  # Reset tasks when transitioning to home
 
     elif (current_screen == 2 and player.rect.left <= 0):
         current_screen = 1
         player.rect.right = SCREEN_WIDTH - 10
+        current_day += 1
 
     # Fill the screen with a color
     if (current_screen == 1):

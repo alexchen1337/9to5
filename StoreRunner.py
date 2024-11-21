@@ -2,7 +2,7 @@ import pygame
 import os
 from store import Store
 from Meter import Meter
-from Player import Player
+from player import Player
 
 # Constants
 WIDTH, HEIGHT = 1280, 720  # Screen dimensions for 1280x720 resolution

@@ -90,13 +90,13 @@ tasks = [
 ]
 
 # Initialize the TaskList
-task_list = TaskList(tasks, game_font, x=50, y=50, color=(255, 255, 255))
+task_list = TaskList(tasks, game_font, x=10, y=160, color=(255, 255, 255))
 
 while running:
 
     if(current_day > last_day):
         running = False
-        end_text = "You survived 30 days. Your final balence is : " + player.checkings
+        end_text = "You survived 30 days."  
 
     if(player.energy.is_depleted()):
         running = False
@@ -130,6 +130,7 @@ while running:
     if (current_screen == 1 and player.rect.right >= SCREEN_WIDTH):
         current_screen = 2
         player.rect.left = 0 + 10
+        player.health.decrease(10) # going to work slowly kills you
         task_list.reset_tasks()  # Reset tasks when transitioning to home
 
     elif (current_screen == 2 and player.rect.left <= 0):
@@ -139,7 +140,9 @@ while running:
 
     # Fill the screen with a color
     if (current_screen == 1):
-        screen.fill((0, 0, 0))  # Black background
+        background_image = pygame.image.load('./assets/HomeScreen.png')
+        background_image = pygame.transform.scale(background_image, (1280, 720))
+        screen.blit(background_image, (0,0))
         task_list.draw(screen)  # Draw the task list
     elif (current_screen == 2):
 
@@ -164,7 +167,7 @@ while running:
 end_screen = EndScreen(screen, selected_sprite)
 end_running = True
 
-# Intro screen loop
+# End screen loop
 while end_running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -175,7 +178,7 @@ while end_running:
             #selected_sprite = intro_screen.selected_sprite
             end_running = False
 
-    end_screen.draw()
+    end_screen.draw(end_text, player.checkings.get_value())
 
 # Quit Pygame
 pygame.quit()

@@ -17,7 +17,7 @@ class Player(pygame.sprite.Sprite):
         # Set players meters to default
         self.health = Meter.Meter("Health", 100)
         self.energy = Meter.Meter("Energy", 100)
-        self.checkings = Meter.Meter("Checkings", 300)
+        self.checkings = Meter.Meter("Checkings", max_value=1000, min_value=0, initial_value=50)
     
     def update(self, keys_pressed, screen_width, screen_height):
         energyConsumption = 0.05

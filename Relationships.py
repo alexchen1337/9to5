@@ -13,7 +13,7 @@ class RelationshipGraph:
         
         # Add edges with initial weights
         self.graph.add_edge("player", "wife", weight=90)
-        self.graph.add_edge("player", "coworker", weight=60)
+        self.graph.add_edge("player", "coworker", weight=50)
         self.graph.add_edge("player", "boss", weight=80)
         self.graph.add_edge("coworker", "wife", weight=50)
         self.graph.add_edge("boss", "coworker", weight=50)

@@ -93,6 +93,13 @@ def draw_day_counter(screen, day, font):
     day_rect = day_text.get_rect(midtop=(SCREEN_WIDTH // 2, 10))  # Center horizontally, 10px from top
     screen.blit(day_text, day_rect)
 
+# Displays how to use store so the user knows to click E
+def display_store_hint(screen):
+    # Render the text for the store hint
+    store_text = game_font.render("Store (Press E)", True, (255, 255, 255))  # White text
+    store_text_rect = store_text.get_rect(midtop=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 40))  # Center horizontally, a bit above the bottom
+    screen.blit(store_text, store_text_rect)
+
 # Main game loop
 running = True
 clock = pygame.time.Clock()
@@ -249,13 +256,20 @@ while running:
         npc_group.update(SCREEN_WIDTH, SCREEN_HEIGHT)
         npc_group.draw(screen)
 
+        for npc in npc_group:
+            npc.draw_minibar(screen, relationship_graph, npc.name.lower())
+            npc.draw_name(screen)  # Draw name
+
+
     # Draw the player
     player_group.draw(screen)
 
     # Draw meters in bottom right corner
     draw_meter(screen, player.health, SCREEN_WIDTH - 300, SCREEN_HEIGHT - 100, width=200, height=20, color=(255, 0, 0))
     draw_meter(screen, player.energy, SCREEN_WIDTH - 300, SCREEN_HEIGHT - 50, width=200, height=20, color=(255, 255, 0))
-    
+
+    display_store_hint(screen) # tells user to press e if they want to use store
+
     # Money text
     money_text = meter_font.render(f"${player.checkings.get_value():.2f}", True, (0, 255, 0))
     money_rect = money_text.get_rect(bottomright=(SCREEN_WIDTH - 100, SCREEN_HEIGHT - 10))

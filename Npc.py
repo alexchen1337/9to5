@@ -67,3 +67,37 @@ class NPC(pygame.sprite.Sprite):
 
     def __str__(self):
         return f"{self.name} - {self.job_title}, Mood: {self.mood}"
+
+    def draw_minibar(self, screen, relationship_graph, target):
+        # Get the relationship weight for this NPC
+        weight = relationship_graph.get_relationship("player", target)
+
+        # Determine the color based on the weight
+        if weight > 60:
+            color = (0, 255, 0)  # Green
+        elif 30 <= weight <= 60:
+            color = (255, 255, 0)  # Yellow
+        else:
+            color = (255, 0, 0)  # Red
+
+        # Calculate the position and size of the minibar
+        bar_width = 50
+        bar_height = 5
+        bar_x = self.rect.centerx - bar_width // 2
+        bar_y = self.rect.bottom + 5  # Place it below the NPC
+
+        # Background of the bar
+        pygame.draw.rect(screen, (100, 100, 100), (bar_x, bar_y, bar_width, bar_height))
+
+        # Filled portion of the bar
+        filled_width = int((weight / 100) * bar_width)
+        pygame.draw.rect(screen, color, (bar_x, bar_y, filled_width, bar_height))
+    
+    def draw_name(self, screen):
+        # Define the font for the NPC's name
+        font = pygame.font.Font(None, 24)  # Default font, size 24
+        text_surface = font.render(self.name, True, (255, 255, 255))  # White color
+
+        # Position the name just above the NPC
+        text_rect = text_surface.get_rect(midbottom=(self.rect.centerx, self.rect.top - 5))
+        screen.blit(text_surface, text_rect)

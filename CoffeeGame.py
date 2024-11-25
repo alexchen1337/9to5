@@ -1,0 +1,219 @@
+# pygame.quit()
+import pygame
+import time
+import random
+
+# Initialize pygame
+pygame.init()
+
+# Screen dimensions and grid settings
+SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+GRID_SIZE = 100  # Size of each grid cell
+COLUMNS, ROWS = 8, 5  # Set based on kitchen_layout dimensions
+
+# Colors
+WHITE = (255, 255, 255)
+GREY = (200, 200, 200)
+COOKING_BAR_COLOR = (255, 69, 0)  # Progress bar color
+FAIL_COLOR = (255, 0, 0)  # Color for failed message
+SUCCESS_COLOR = (0, 255, 0)  # Color for success message
+
+# Create screen
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Overcooked-style Game Layout")
+
+# Define kitchen layout and ingredient locations
+kitchen_layout = [
+    [' ', 'I', 'I', ' ', ' ', ' ', ' ', 'S'],  # I = Ingredient, C = Cooking, S = Serving
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    ['C', 'C', ' ', ' ', ' ', 'I', 'I', ' ']
+]
+
+# Ingredient types at specific locations
+ingredient_locations = {
+    (0, 1): "Creamer",
+    (0, 2): "Sugar",
+    (4, 5): "Coffee Beans",
+    (4, 6): "Milk"
+}
+
+# Brewed item titles based on combinations
+brew_titles = {
+    frozenset(["Coffee Beans"]): "Black Coffee",
+    frozenset(["Coffee Beans", "Creamer"]): "Creamy Black Coffee",
+    frozenset(["Coffee Beans", "Milk"]): "Latte",
+    frozenset(["Coffee Beans", "Sugar"]): "Sweet Coffee",
+    frozenset(["Coffee Beans", "Creamer", "Milk"]): "Creamy Latte",
+    frozenset(["Coffee Beans", "Sugar", "Creamer"]): "Sweet Creamy Coffee",
+    frozenset(["Coffee Beans", "Sugar", "Milk"]): "Sweet Latte",
+    frozenset(["Coffee Beans", "Creamer", "Sugar", "Milk"]): "Ultimate Latte",
+}
+
+# List of required coffee types
+required_coffees = [
+    "Black Coffee",
+    "Creamy Black Coffee",
+    "Latte",
+    "Sweet Coffee",
+    "Creamy Latte",
+    "Sweet Creamy Coffee",
+    "Sweet Latte",
+    "Ultimate Latte"
+]
+
+# Player starting position
+player_x, player_y = 3, 2  # Start in the middle of the layout
+held_items = []  # List to track what the player is holding
+is_cooking = False
+cook_start_time = 0
+COOK_TIME = 3  # Seconds to brew an item
+current_coffee_type = random.choice(required_coffees)  # Randomly select a new coffee type
+game_failed = False  # Track game state
+
+# Load images for player, floor tiles, and stations
+player_image = pygame.image.load("assets/player0.png")  # Player image
+player_image = pygame.transform.scale(player_image, (GRID_SIZE, GRID_SIZE))
+
+floor_tile_image = pygame.image.load("assets/Tile.png")  # Floor tile image
+floor_tile_image = pygame.transform.scale(floor_tile_image, (GRID_SIZE, GRID_SIZE))
+
+cooking_station_image = pygame.image.load("assets/Stove.png")  # Cooking station image
+cooking_station_image = pygame.transform.scale(cooking_station_image, (GRID_SIZE, GRID_SIZE))
+
+serving_station_image = pygame.image.load("assets/Table.png")  # Serving station image
+serving_station_image = pygame.transform.scale(serving_station_image, (GRID_SIZE, GRID_SIZE))
+
+# Load unique ingredient images
+ingredient_images = {
+    "Coffee Beans": pygame.transform.scale(
+        pygame.image.load("assets/CoffeeBean.png"), (GRID_SIZE, GRID_SIZE)
+    ),
+    "Sugar": pygame.transform.scale(
+        pygame.image.load("assets/Sugar.png"), (GRID_SIZE, GRID_SIZE)
+    ),
+    "Milk": pygame.transform.scale(
+        pygame.image.load("assets/Milk.png"), (GRID_SIZE, GRID_SIZE)
+    ),
+    "Creamer": pygame.transform.scale(
+        pygame.image.load("assets/Greek Yogurt.png"), (GRID_SIZE, GRID_SIZE)
+    ),
+}
+
+
+def draw_grid():
+    for row in range(ROWS):
+        for col in range(COLUMNS):
+            x, y = col * GRID_SIZE, row * GRID_SIZE
+
+            # Draw floor tile for every cell
+            screen.blit(floor_tile_image, (x, y))
+            
+            # Draw kitchen stations based on layout
+            if kitchen_layout[row][col] == 'I':  # Ingredient station
+                ingredient = ingredient_locations.get((row, col), None)
+                if ingredient and ingredient in ingredient_images:
+                    screen.blit(ingredient_images[ingredient], (x, y))
+            elif kitchen_layout[row][col] == 'C':  # Cooking station
+                screen.blit(cooking_station_image, (x, y))
+            elif kitchen_layout[row][col] == 'S':  # Serving station
+                screen.blit(serving_station_image, (x, y))
+
+    # Draw the player
+    screen.blit(player_image, (player_x * GRID_SIZE, player_y * GRID_SIZE))
+
+    # Display held items text
+    font = pygame.font.Font(None, 36)
+    item_text = f"Held Items: {', '.join(held_items) if held_items else 'None'}"
+    text = font.render(item_text, True, (0, 0, 0))
+    screen.blit(text, (10, SCREEN_HEIGHT - 40))
+
+    # Draw required coffee type
+    required_text = f"Required Coffee: {current_coffee_type}"
+    required_surface = font.render(required_text, True, (0, 0, 0))
+    screen.blit(required_surface, (10, SCREEN_HEIGHT - 70))
+
+    # Draw brewing progress bar if brewing
+    if is_cooking:
+        elapsed_time = time.time() - cook_start_time
+        progress = min(1, elapsed_time / COOK_TIME)
+        pygame.draw.rect(screen, COOKING_BAR_COLOR, (player_x * GRID_SIZE, player_y * GRID_SIZE + GRID_SIZE - 10, int(GRID_SIZE * progress), 10))
+
+    # Draw failed message if applicable
+    if game_failed:
+        font = pygame.font.Font(None, 72)
+        failed_text = font.render("FAILED", True, FAIL_COLOR)
+        text_rect = failed_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        screen.blit(failed_text, text_rect)
+
+
+def reset_game():
+    global held_items, is_cooking, cook_start_time, current_coffee_type, player_x, player_y, game_failed
+    held_items = []
+    is_cooking = False
+    cook_start_time = 0
+    current_coffee_type = random.choice(required_coffees)  # Randomly select a new coffee type
+    player_x, player_y = 3, 2  # Reset player position
+    game_failed = False  # Reset failure state
+
+
+# Main game loop
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            if not is_cooking and not game_failed:  # Prevent movement while brewing or after failure
+                # move with arrow keys
+                if event.key == pygame.K_LEFT and player_x > 0:
+                    player_x -= 1
+                elif event.key == pygame.K_RIGHT and player_x < COLUMNS - 1:
+                    player_x += 1
+                elif event.key == pygame.K_UP and player_y > 0:
+                    player_y -= 1
+                elif event.key == pygame.K_DOWN and player_y < ROWS - 1:
+                    player_y += 1
+            
+            if event.key == pygame.K_SPACE:
+                # Check if player is on an ingredient station to pick up
+                if kitchen_layout[player_y][player_x] == 'I':
+                    item = ingredient_locations.get((player_y, player_x), None)
+                    if item and item not in held_items:  # Avoid duplicates
+                        held_items.append(item)
+                
+                # Start brewing if on a cooking station and holding "Coffee Beans"
+                elif kitchen_layout[player_y][player_x] == 'C' and "Coffee Beans" in held_items and not is_cooking:
+                    is_cooking = True
+                    cook_start_time = time.time()
+                
+                # Serve the brewed items if on the serving station
+                elif kitchen_layout[player_y][player_x] == 'S' and held_items and not is_cooking:
+                    # Get the title based on the held items
+                    brewed_items_set = frozenset(held_items)  # Use frozenset for title lookup
+                    title = brew_titles.get(brewed_items_set, "Brewed Unknown")  # Default title
+
+                    # Check if the brewed item matches the required coffee type
+                    if title == current_coffee_type:
+                        print(f"Served: {title} - SUCCESS!")  # Display success message in the console
+                        # font = pygame.font.Font(None, 72)
+                        # success_text = font.render("SUCCESS!", True, SUCCESS_COLOR)
+                        held_items = [title]  # Change held items to the brewed title after cooking
+                        reset_game()  # Restart game with a new coffee requirement
+                    else:
+                        game_failed = True  # Set game failed state
+                        print(f"Served: {title} - FAILED! Required: {current_coffee_type}")
+
+    # Check if brewing time has finished
+    if is_cooking:
+        if time.time() - cook_start_time >= COOK_TIME:
+            is_cooking = False
+            print("Brewing complete!")
+
+    # Redraw the game
+    screen.fill(WHITE)
+    draw_grid()
+    pygame.display.flip()
+
+pygame.quit()

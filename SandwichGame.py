@@ -41,15 +41,6 @@ ingredient_locations = {
 
 # Burger titles based on combinations
 
-# burger_titles = {
-#     frozenset(["Cheese", "Bun", "Patty"]): "Cheeseburger",
-#     frozenset(["Tomato", "Bun", "Patty"]): "Tomato Burger",
-#     frozenset(["Lettuce", "Bun", "Patty"]): "Lettuce Burger",
-#     frozenset(["Cheese", "Tomato", "Bun", "Patty"]): "Cheese Tomato Burger",
-#     frozenset(["Cheese", "Lettuce", "Bun", "Patty"]): "Cheese Lettuce Burger",
-#     frozenset(["Cheese", "Tomato", "Lettuce", "Bun", "Patty"]): "Ultimate Burger",
-# }
-
 # Burger titles with sorted tuples as keys
 burger_titles = {
     tuple(sorted(["Cheese", "Bun", "Patty"])): "Cheeseburger",

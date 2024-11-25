@@ -1,9 +1,9 @@
 class Meter:
-    def __init__(self, name, max_value, min_value=0, hidden=False):
+    def __init__(self, name, max_value, min_value=0, initial_value=None, hidden=False):
         self.name = name
-        self.value = max_value
         self.max_value = max_value
         self.min_value = min_value
+        self.value = initial_value if initial_value is not None else max_value
         self.history = []
         self.hidden = hidden  # Flag to keep track if the meter is hidden
 

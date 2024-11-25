@@ -5,6 +5,10 @@ from EndScreen import EndScreen
 from Meter import Meter  # Import your Meter class
 from StoreRunner import runStore
 from TaskList import TaskList
+from TypingGame import TypingGame
+from Relationships import RelationshipGraph
+from Npc import NPC
+from DayTransitionScreen import DayTransitionScreen
 
 # Initialize Pygame
 pygame.init()
@@ -51,9 +55,23 @@ player = Player(selected_sprite, scale_factor=8, screen_width=SCREEN_WIDTH, scre
 player_group = pygame.sprite.Group()
 player_group.add(player)
 
+# Create NPCs
+boss = NPC("./assets/player1.png", scale_factor=8, screen_width=SCREEN_WIDTH, screen_height=SCREEN_HEIGHT, 
+           name="Boss", job_title="Regional Manager")
+coworker = NPC("./assets/player2.png", scale_factor=8, screen_width=SCREEN_WIDTH, screen_height=SCREEN_HEIGHT, 
+               name="Coworker", job_title="Assistant")
+
+# Create NPC group
+npc_group = pygame.sprite.Group()
+npc_group.add(boss)
+npc_group.add(coworker)
+
+# Adjust the font size for meters (at the top with other font definitions)
+meter_font_size = 18  # Smaller font for meters
+meter_font = pygame.font.Font(font_path, meter_font_size)
 
 # Function to draw a bar on the screen
-def draw_meter(screen, meter, x, y, width=200, height=20, color=(0, 255, 0)):
+def draw_meter(screen, meter, x, y, width=150, height=15, color=(0, 255, 0)):  # Reduced width and height
     # Calculate the fill ratio based on the meter's value
     fill_ratio = meter.get_value() / meter.max_value
     fill_width = int(width * fill_ratio)
@@ -62,10 +80,18 @@ def draw_meter(screen, meter, x, y, width=200, height=20, color=(0, 255, 0)):
     pygame.draw.rect(screen, (50, 50, 50), (x, y, width, height))  # Gray background
     # Bar fill
     pygame.draw.rect(screen, color, (x, y, fill_width, height))  # Customizable fill color
-    # Text label
-    text_surface = game_font.render(f"{meter.name}: {meter.value}/{meter.max_value}", True, text_color)
-    screen.blit(text_surface, (x, y - font_size))  # Position text above bar
+    # Text label with smaller font and integer values
+    text_surface = meter_font.render(f"{meter.name}: {int(meter.value)}/{meter.max_value}", True, text_color)
+    screen.blit(text_surface, (x, y - meter_font_size))  # Position text above bar
 
+# After initializing font
+day_font = pygame.font.Font(font_path, 24)  # Smaller font for day display
+
+# After initializing font
+def draw_day_counter(screen, day, font):
+    day_text = font.render(f"Day: {day}/{last_day}", True, text_color)
+    day_rect = day_text.get_rect(midtop=(SCREEN_WIDTH // 2, 10))  # Center horizontally, 10px from top
+    screen.blit(day_text, day_rect)
 
 # Main game loop
 running = True
@@ -80,17 +106,27 @@ current_day = 1
 last_day = 30
 end_text = ""
 
-# Define the tasks for the office
+# Define the tasks for the office (replace with games)
 tasks = [
-    "Check email responses",
-    "Prepare the presentation",
-    "Call the client",
-    "Complete the report",
-    "Attend the team meeting"
+    "Complete Typing Test",
+    "Handle Email Inbox",
 ]
 
-# Initialize the TaskList
-task_list = TaskList(tasks, game_font, x=10, y=160, color=(255, 255, 255))
+# Initialize the TaskList (update position to top left)
+task_list = TaskList(tasks, game_font, x=10, y=10, color=(255, 255, 255))
+
+# After initializing player
+relationship_graph = RelationshipGraph()  # Initialize relationship system
+base_task_reward = 50  # Base reward for completing tasks
+min_task_reward = 5    # Minimum reward possible
+
+# Function to calculate reward based on boss relationship
+def calculate_reward():
+    boss_relationship = relationship_graph.get_relationship("player", "boss")
+    # Every 20 points of relationship adds $5 to base reward
+    relationship_bonus = (boss_relationship - 80) // 20 * 5  # Start bonus at 80 relationship
+    reward = base_task_reward + relationship_bonus
+    return max(min_task_reward, min(reward, 100))  # Cap between min_task_reward and 100
 
 while running:
 
@@ -109,16 +145,49 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                running = False
+            elif event.key == pygame.K_t:  # Toggle task list visibility
+                task_list.toggle_visibility()
         
-        if current_screen == 1 and event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_1:  # Press '1' to toggle task 1
-                task_list.toggle_task(0)
-            elif event.key == pygame.K_2:  # Press '2' to toggle task 2
-                task_list.toggle_task(1)
-            elif event.key == pygame.K_3:  # Press '2' to toggle task 2
-                task_list.toggle_task(2)
+        # Move task handling to office screen (current_screen == 2)
+        if current_screen == 2 and event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_1 and not task_list.is_completed(0):  # Typing Game
+                typing_game = TypingGame(screen, game_font)
+                typing_game.start_game()
+                game_running = True
+                
+                while game_running:
+                    for game_event in pygame.event.get():
+                        if game_event.type == pygame.QUIT:
+                            running = False
+                            game_running = False
+                        typing_game.handle_event(game_event)
+                    
+                    screen.fill((30, 30, 30))  # Dark background
+                    typing_game.update()
+                    pygame.display.flip()
+                    
+                    if typing_game.is_finished():
+                        game_running = False
+                        if typing_game.is_successful():
+                            task_list.toggle_task(0)
+                            player.energy.decrease(10)
+                            # Increase relationship with boss on success
+                            relationship_graph.increase_relationship("player", "boss", 5)  # Increase by 5 points
+                            reward = calculate_reward()
+                            player.checkings.increase(reward)
+                            print(f"Earned ${reward} from typing task!")
+                            print("Boss is impressed with your performance!")
+                        else:
+                            # Failed the game
+                            relationship_graph.decrease_relationship("player", "boss", 10)
+                            print("Boss is disappointed with your performance!")
+
+            elif event.key == pygame.K_2 and not task_list.is_completed(1):  # Email Game
+                # Similar structure for email game
+                pass
 
     # Get key presses for player movement
     keys_pressed = pygame.key.get_pressed()
@@ -128,12 +197,42 @@ while running:
 
     # Screen transition logic
     if (current_screen == 1 and player.rect.right >= SCREEN_WIDTH):
+        # Show transition to work
+        transition_screen = DayTransitionScreen(screen)
+        waiting_for_transition = True
+        
+        while waiting_for_transition:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    waiting_for_transition = False
+            
+            if transition_screen.draw(current_day, going_to_work=True):
+                waiting_for_transition = False
+            clock.tick(FPS)
+        
         current_screen = 2
         player.rect.left = 0 + 10
-        player.health.decrease(10) # going to work slowly kills you
-        task_list.reset_tasks()  # Reset tasks when transitioning to home
+        player.health.decrease(10)
+        task_list.reset_tasks()
+        boss.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3)
+        coworker.rect.center = (SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2)
 
     elif (current_screen == 2 and player.rect.left <= 0):
+        # Show transition to home
+        transition_screen = DayTransitionScreen(screen)
+        waiting_for_transition = True
+        
+        while waiting_for_transition:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    waiting_for_transition = False
+            
+            if transition_screen.draw(current_day, going_to_work=False):
+                waiting_for_transition = False
+            clock.tick(FPS)
+        
         current_screen = 1
         player.rect.right = SCREEN_WIDTH - 10
         current_day += 1
@@ -143,13 +242,27 @@ while running:
         background_image = pygame.image.load('./assets/HomeScreen.png')
         background_image = pygame.transform.scale(background_image, (1280, 720))
         screen.blit(background_image, (0,0))
-        task_list.draw(screen)  # Draw the task list
     elif (current_screen == 2):
-
         screen.fill((50, 50, 150)) # Dark Blue
+        task_list.draw(screen)  # Move task list to work screen
+        # Update and draw NPCs in office
+        npc_group.update(SCREEN_WIDTH, SCREEN_HEIGHT)
+        npc_group.draw(screen)
 
     # Draw the player
     player_group.draw(screen)
+
+    # Draw meters in bottom right corner
+    draw_meter(screen, player.health, SCREEN_WIDTH - 300, SCREEN_HEIGHT - 100, width=200, height=20, color=(255, 0, 0))
+    draw_meter(screen, player.energy, SCREEN_WIDTH - 300, SCREEN_HEIGHT - 50, width=200, height=20, color=(255, 255, 0))
+    
+    # Money text
+    money_text = meter_font.render(f"${player.checkings.get_value():.2f}", True, (0, 255, 0))
+    money_rect = money_text.get_rect(bottomright=(SCREEN_WIDTH - 100, SCREEN_HEIGHT - 10))
+    screen.blit(money_text, money_rect)
+
+    # Draw day counter (moved to here, after other drawing operations)
+    draw_day_counter(screen, current_day, day_font)
 
     # Update the display
     pygame.display.flip()
@@ -159,9 +272,6 @@ while running:
 
     if keys_pressed[pygame.K_e]:  # Enter the store
         storeRunning = runStore(screen, game_font, player)
-        if storeRunning == False:  # Exited the store, return to the game
-            storeRunning = False
-
 
 # Create and display the intro screen
 end_screen = EndScreen(screen, selected_sprite)

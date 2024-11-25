@@ -15,19 +15,41 @@ class NPC(pygame.sprite.Sprite):
         self.name = name
         self.job_title = job_title
         self.mood = random.choice(['happy', 'neutral', 'unhappy'])
+        
+        # Movement variables
+        self.speed = 2
+        self.direction = pygame.math.Vector2()
+        self.change_direction_timer = 0
+        self.change_direction_interval = 60  # frames until direction change
 
     def update(self, screen_width, screen_height):
-        # Removed movement logic, NPC will not move
+        # Update direction timer
+        self.change_direction_timer += 1
+        if self.change_direction_timer >= self.change_direction_interval:
+            # Choose new random direction
+            self.direction.x = random.uniform(-1, 1)
+            self.direction.y = random.uniform(-1, 1)
+            self.direction = self.direction.normalize()
+            self.change_direction_timer = 0
+            self.change_direction_interval = random.randint(30, 90)  # Random interval
 
-        # Optional: You could still check boundaries if you plan to reposition the NPCs
+        # Move NPC
+        self.rect.x += self.direction.x * self.speed
+        self.rect.y += self.direction.y * self.speed
+
+        # Keep NPC in bounds
         if self.rect.left < 0:
             self.rect.left = 0
+            self.direction.x *= -1
         if self.rect.right > screen_width:
             self.rect.right = screen_width
+            self.direction.x *= -1
         if self.rect.top < 0:
             self.rect.top = 0
+            self.direction.y *= -1
         if self.rect.bottom > screen_height:
             self.rect.bottom = screen_height
+            self.direction.y *= -1
 
     def chat(self):
         chat_responses = {

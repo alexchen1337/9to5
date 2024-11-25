@@ -40,13 +40,24 @@ ingredient_locations = {
 }
 
 # Burger titles based on combinations
+
+# burger_titles = {
+#     frozenset(["Cheese", "Bun", "Patty"]): "Cheeseburger",
+#     frozenset(["Tomato", "Bun", "Patty"]): "Tomato Burger",
+#     frozenset(["Lettuce", "Bun", "Patty"]): "Lettuce Burger",
+#     frozenset(["Cheese", "Tomato", "Bun", "Patty"]): "Cheese Tomato Burger",
+#     frozenset(["Cheese", "Lettuce", "Bun", "Patty"]): "Cheese Lettuce Burger",
+#     frozenset(["Cheese", "Tomato", "Lettuce", "Bun", "Patty"]): "Ultimate Burger",
+# }
+
+# Burger titles with sorted tuples as keys
 burger_titles = {
-    frozenset(["Cheese", "Bun", "Patty"]): "Cheeseburger",
-    frozenset(["Tomato", "Bun", "Patty"]): "Tomato Burger",
-    frozenset(["Lettuce", "Bun", "Patty"]): "Lettuce Burger",
-    frozenset(["Cheese", "Tomato", "Bun", "Patty"]): "Cheese Tomato Burger",
-    frozenset(["Cheese", "Lettuce", "Bun", "Patty"]): "Cheese Lettuce Burger",
-    frozenset(["Cheese", "Tomato", "Lettuce", "Bun", "Patty"]): "Ultimate Burger",
+    tuple(sorted(["Cheese", "Bun", "Patty"])): "Cheeseburger",
+    tuple(sorted(["Tomato", "Bun", "Patty"])): "Tomato Burger",
+    tuple(sorted(["Lettuce", "Bun", "Patty"])): "Lettuce Burger",
+    tuple(sorted(["Cheese", "Tomato", "Bun", "Patty"])): "Cheese Tomato Burger",
+    tuple(sorted(["Cheese", "Lettuce", "Bun", "Patty"])): "Cheese Lettuce Burger",
+    tuple(sorted(["Cheese", "Tomato", "Lettuce", "Bun", "Patty"])): "Ultimate Burger",
 }
 
 # List of required burger types
@@ -184,19 +195,21 @@ while running:
                     is_cooking = True
                     cook_start_time = time.time()
                 
-                # Serve the cooked burger if on the serving station
+                # Check if the player is serving the correct burger
                 elif kitchen_layout[player_y][player_x] == 'S' and held_items and not is_cooking:
                     # Get the title based on the held items
-                    held_items_set = frozenset(held_items)  # Use frozenset for title lookup
-                    title = burger_titles.get(held_items_set, "Made Unknown")  # Default title
+                    held_items_tuple = tuple(sorted(held_items))  # Convert held items to sorted tuple
+                    title = burger_titles.get(held_items_tuple, "Made Unknown")  # Default title if not found
 
                     # Check if the cooked burger matches the required burger type
                     if title == current_burger_type:
+                        print(f"Success! You made a {title}.")
                         held_items = []
                         current_burger_type = random.choice(required_burgers)  # Pick a new required burger
                     else:
                         game_failed = True
                         print("Game Over - Incorrect burger")
+
 
     # Update the game screen
     screen.fill(WHITE)

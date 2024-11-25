@@ -41,14 +41,14 @@ ingredient_locations = {
 
 # Brewed item titles based on combinations
 brew_titles = {
-    frozenset(["Coffee Beans"]): "Black Coffee",
-    frozenset(["Coffee Beans", "Creamer"]): "Creamy Black Coffee",
-    frozenset(["Coffee Beans", "Milk"]): "Latte",
-    frozenset(["Coffee Beans", "Sugar"]): "Sweet Coffee",
-    frozenset(["Coffee Beans", "Creamer", "Milk"]): "Creamy Latte",
-    frozenset(["Coffee Beans", "Sugar", "Creamer"]): "Sweet Creamy Coffee",
-    frozenset(["Coffee Beans", "Sugar", "Milk"]): "Sweet Latte",
-    frozenset(["Coffee Beans", "Creamer", "Sugar", "Milk"]): "Ultimate Latte",
+    tuple(sorted(["Coffee Beans"])): "Black Coffee",
+    tuple(sorted(["Coffee Beans", "Creamer"])): "Creamy Black Coffee",
+    tuple(sorted(["Coffee Beans", "Milk"])): "Latte",
+    tuple(sorted(["Coffee Beans", "Sugar"])): "Sweet Coffee",
+    tuple(sorted(["Coffee Beans", "Creamer", "Milk"])): "Creamy Latte",
+    tuple(sorted(["Coffee Beans", "Sugar", "Creamer"])): "Sweet Creamy Coffee",
+    tuple(sorted(["Coffee Beans", "Sugar", "Milk"])): "Sweet Latte",
+    tuple(sorted(["Coffee Beans", "Creamer", "Sugar", "Milk"])): "Ultimate Latte",
 }
 
 # List of required coffee types
@@ -188,19 +188,16 @@ while running:
                     is_cooking = True
                     cook_start_time = time.time()
                 
-                # Serve the brewed items if on the serving station
                 elif kitchen_layout[player_y][player_x] == 'S' and held_items and not is_cooking:
-                    # Get the title based on the held items
-                    brewed_items_set = frozenset(held_items)  # Use frozenset for title lookup
-                    title = brew_titles.get(brewed_items_set, "Brewed Unknown")  # Default title
+                    # Convert held items to a sorted tuple for lookup
+                    brewed_items_tuple = tuple(sorted(held_items))
+                    title = brew_titles.get(brewed_items_tuple, "Brewed Unknown")  # Default to "Unknown"
 
                     # Check if the brewed item matches the required coffee type
                     if title == current_coffee_type:
-                        print(f"Served: {title} - SUCCESS!")  # Display success message in the console
-                        # font = pygame.font.Font(None, 72)
-                        # success_text = font.render("SUCCESS!", True, SUCCESS_COLOR)
-                        held_items = [title]  # Change held items to the brewed title after cooking
-                        reset_game()  # Restart game with a new coffee requirement
+                        print(f"Served: {title} - SUCCESS!")
+                        held_items = [title]  # Update held items with the brewed title
+                        reset_game()  # Restart the game with a new coffee requirement
                     else:
                         game_failed = True  # Set game failed state
                         print(f"Served: {title} - FAILED! Required: {current_coffee_type}")

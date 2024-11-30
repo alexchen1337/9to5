@@ -2,9 +2,11 @@ import pygame
 import time
 import random
 from player import Player
+from Relationships import RelationshipGraph
 
 # Initialize pygame
 pygame.init()
+relationship_graph = RelationshipGraph()
 
 # Screen dimensions and grid settings
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
@@ -131,17 +133,12 @@ def draw_grid():
     text = font.render(item_text, True, (0, 0, 0))
     screen.blit(text, (10, SCREEN_HEIGHT - 40))
 
-    # Draw required burger type
-    required_text = f"Required Burger: {current_burger_type}"
+    # Draw required coffee type
+    required_text = f"Burger Needed: {current_burger_type}"
     required_surface = font.render(required_text, True, (0, 0, 0))
     screen.blit(required_surface, (10, SCREEN_HEIGHT - 70))
 
-    # Draw sandwich counter
-    counter_text = f"Sandwiches Made (6): {sandwich_counter}"
-    counter_surface = font.render(counter_text, True, (200, 100, 100))
-    screen.blit(counter_surface, (10, SCREEN_HEIGHT - 100))
-
-    # Draw cooking progress bar if cooking
+    # Draw brewing progress bar if brewing
     if is_cooking:
         elapsed_time = time.time() - cook_start_time
         progress = min(1, elapsed_time / COOK_TIME)
@@ -162,6 +159,18 @@ def reset_game():
     current_burger_type = random.choice(required_burgers)  # Randomly select a new burger type
     player_x, player_y = 3, 2  # Reset player position
     game_failed = False  # Reset failure state
+
+def evaluate_performance():
+    if sandwich_counter >= 6:
+        relationship_graph.increase_relationship("player", "boss", 20)
+        print("Boss happiness increased due to good performance!")
+    elif game_failed:
+        relationship_graph.decrease_relationship("player", "boss", 20)
+        print("Boss happiness decreased due to poor performance!")
+    else:
+        relationship_graph.increase_relationship("player", "boss", 5)
+        print("Boss happiness increased due to good performance!")
+    relationship_graph.check_thresholds()
 
 # Main game loop
 running = True
@@ -188,31 +197,42 @@ while running:
                     if item and item not in held_items:  # Avoid duplicates
                         held_items.append(item)
                 
-                # Start cooking if on a cooking station and holding necessary ingredients
-                elif kitchen_layout[player_y][player_x] == 'C' and not is_cooking:
-                    if tuple(sorted(held_items)) in burger_titles:
-                        is_cooking = True
-                        cook_start_time = time.time()
-                
-                # Serve burger if on a serving station
-                elif kitchen_layout[player_y][player_x] == 'S' and not is_cooking:
-                    if tuple(sorted(held_items)) in burger_titles:
-                        if burger_titles[tuple(sorted(held_items))] == current_burger_type:
-                            sandwich_counter += 1
-                            held_items.clear()
-                            current_burger_type = random.choice(required_burgers)  # Randomly select a new burger type
+                # Start brewing if on a cooking station and holding "Coffee Beans"
+                elif kitchen_layout[player_y][player_x] == 'C' and "Patty" in held_items and not is_cooking:
+                    is_cooking = True
+                    cook_start_time = time.time()
+
+                elif kitchen_layout[player_y][player_x] == 'S' and held_items and not is_cooking:
+                    # Convert held items to a sorted tuple for lookup
+                    brewed_items_tuple = tuple(sorted(held_items))
+                    title = burger_titles.get(brewed_items_tuple, "Brewed Unknown")  # Default to "Unknown"
+
+                    # Check if the brewed item matches the required coffee type
+                    if title == current_burger_type:
+                        print(f"Served: {title} - SUCCESS!")
+                        held_items = [title]  # Update held items with the brewed title
+                        sandwich_counter += 1  # Increment the number of successfully brewed coffees
+                        reset_game()  # Restart the game with a new coffee requirement
+                    else:
+                        game_failed = True  # Set game failed state
+                        print(f"Served: {title} - FAILED! Required: {current_burger_type}")
 
     # Update game state
     if is_cooking:
-        elapsed_time = time.time() - cook_start_time
-        if elapsed_time >= COOK_TIME:
+        if time.time() - cook_start_time >= COOK_TIME:
             is_cooking = False
-            if tuple(sorted(held_items)) not in burger_titles:
-                game_failed = True  # Fail if the burger is not correct
+            print("Cooking complete!")
 
-    if sandwich_counter == len(required_burgers):  # Win condition: all required burgers made
+    if sandwich_counter >= 6:  # Win condition: all required burgers made
         print("Congratulations! You've made all the required burgers!")
-        break
+        evaluate_performance()
+        running = False  # End the game
+
+    # Check if time is up and show the failed message
+    if game_failed:
+        pygame.time.delay(2000)  # Wait for 2 seconds before reset
+        evaluate_performance()
+        reset_game()
 
     # Redraw everything
     screen.fill(WHITE)

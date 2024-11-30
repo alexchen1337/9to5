@@ -3,9 +3,11 @@ import time
 import random
 from IntroScreen import IntroScreen 
 from player import Player
+from Relationships import RelationshipGraph
 
 # Initialize pygame
 pygame.init()
+relationship_graph = RelationshipGraph()
 
 # Screen dimensions and grid settings
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
@@ -169,6 +171,18 @@ def reset_game():
     player_x, player_y = 3, 2  # Reset player position
     game_failed = False  # Reset failure state
 
+def evaluate_performance():
+    if coffees_made >= 6:
+        relationship_graph.increase_relationship("player", "boss", 20)
+        print("Boss happiness increased due to good performance!")
+    elif game_failed:
+        relationship_graph.decrease_relationship("player", "boss", 20)
+        print("Boss happiness decreased due to poor performance!")
+    else:
+        relationship_graph.increase_relationship("player", "boss", 5)
+        print("Boss happiness increased due to good performance!")
+    relationship_graph.check_thresholds()
+
 # Main game loop
 running = True
 while running:
@@ -220,19 +234,25 @@ while running:
             is_cooking = False
             print("Brewing complete!")
 
-    # Check if 5 coffees have been made and quit the game
     if coffees_made >= 5:
         print("5 Coffees Made! Hopefully you don't get fired!")
+        evaluate_performance()
         running = False  # End the game
 
     # Check if time is up and show the failed message
     if game_failed:
         pygame.time.delay(2000)  # Wait for 2 seconds before reset
+        evaluate_performance()
         reset_game()
 
-    # Redraw the game
+    # Redraw everything
     screen.fill(WHITE)
     draw_grid()
-    pygame.display.flip()
+
+    # Update the screen
+    pygame.display.update()
+
+    # Frame rate control
+    pygame.time.Clock().tick(30)
 
 pygame.quit()

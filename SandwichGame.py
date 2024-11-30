@@ -1,14 +1,15 @@
 import pygame
 import time
 import random
+from player import Player
 
 # Initialize pygame
 pygame.init()
 
 # Screen dimensions and grid settings
-SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
-GRID_SIZE = 100  # Size of each grid cell
-COLUMNS, ROWS = 8, 5  # Set based on kitchen_layout dimensions
+SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
+GRID_SIZE = 128  # Size of each grid cell
+COLUMNS, ROWS = 10, 5  # Set based on kitchen_layout dimensions
 
 # Colors
 WHITE = (255, 255, 255)
@@ -19,15 +20,15 @@ SUCCESS_COLOR = (0, 255, 0)  # Color for success message
 
 # Create screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Overcooked-style Game Layout")
+pygame.display.set_caption("Burger-Cooking Game Layout")
 
 # Define kitchen layout and ingredient locations
 kitchen_layout = [
-    [' ', 'I', 'I', ' ', ' ', ' ', ' ', 'S'],  # I = Ingredient, C = Cooking, S = Serving
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    ['C', 'C', ' ', ' ', 'I', 'I', 'I', ' ']
+    [' ', 'I', 'I', ' ', ' ', ' ', ' ', ' ', ' ', 'S'],  # I = Ingredient, C = Cooking, S = Serving
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    ['C', 'C', ' ', ' ', 'I', 'I', 'I', ' ', ' ', ' ']
 ]
 
 # Ingredient types at specific locations
@@ -38,8 +39,6 @@ ingredient_locations = {
     (4, 6): "Patty",
     (4, 4): "Tomato"
 }
-
-# Burger titles based on combinations
 
 # Burger titles with sorted tuples as keys
 burger_titles = {
@@ -69,6 +68,9 @@ cook_start_time = 0
 COOK_TIME = 3  # Seconds to cook a burger
 current_burger_type = random.choice(required_burgers)  # Randomly select a new burger type
 game_failed = False  # Track game state
+
+# Initialize sandwich counter
+sandwich_counter = 0
 
 # Load images for player, floor tiles, and stations
 player_image = pygame.image.load("assets/player0.png")  # Player image
@@ -134,6 +136,11 @@ def draw_grid():
     required_surface = font.render(required_text, True, (0, 0, 0))
     screen.blit(required_surface, (10, SCREEN_HEIGHT - 70))
 
+    # Draw sandwich counter
+    counter_text = f"Sandwiches Made (6): {sandwich_counter}"
+    counter_surface = font.render(counter_text, True, (200, 100, 100))
+    screen.blit(counter_surface, (10, SCREEN_HEIGHT - 100))
+
     # Draw cooking progress bar if cooking
     if is_cooking:
         elapsed_time = time.time() - cook_start_time
@@ -164,7 +171,7 @@ while running:
             running = False
         elif event.type == pygame.KEYDOWN:
             if not is_cooking and not game_failed:  # Prevent movement while cooking or after failure
-                # move with arrow keys
+                # Move with arrow keys
                 if event.key == pygame.K_LEFT and player_x > 0:
                     player_x -= 1
                 elif event.key == pygame.K_RIGHT and player_x < COLUMNS - 1:
@@ -182,43 +189,39 @@ while running:
                         held_items.append(item)
                 
                 # Start cooking if on a cooking station and holding necessary ingredients
-                elif kitchen_layout[player_y][player_x] == 'C' and all(ingredient in held_items for ingredient in ["Bun", "Patty"]) and not is_cooking:
-                    is_cooking = True
-                    cook_start_time = time.time()
+                elif kitchen_layout[player_y][player_x] == 'C' and not is_cooking:
+                    if tuple(sorted(held_items)) in burger_titles:
+                        is_cooking = True
+                        cook_start_time = time.time()
                 
-                # Check if the player is serving the correct burger
-                elif kitchen_layout[player_y][player_x] == 'S' and held_items and not is_cooking:
-                    # Get the title based on the held items
-                    held_items_tuple = tuple(sorted(held_items))  # Convert held items to sorted tuple
-                    title = burger_titles.get(held_items_tuple, "Made Unknown")  # Default title if not found
+                # Serve burger if on a serving station
+                elif kitchen_layout[player_y][player_x] == 'S' and not is_cooking:
+                    if tuple(sorted(held_items)) in burger_titles:
+                        if burger_titles[tuple(sorted(held_items))] == current_burger_type:
+                            sandwich_counter += 1
+                            held_items.clear()
+                            current_burger_type = random.choice(required_burgers)  # Randomly select a new burger type
 
-                    # Check if the cooked burger matches the required burger type
-                    if title == current_burger_type:
-                        print(f"Success! You made a {title}.")
-                        held_items = []
-                        current_burger_type = random.choice(required_burgers)  # Pick a new required burger
-                    else:
-                        game_failed = True
-                        print("Game Over - Incorrect burger")
+    # Update game state
+    if is_cooking:
+        elapsed_time = time.time() - cook_start_time
+        if elapsed_time >= COOK_TIME:
+            is_cooking = False
+            if tuple(sorted(held_items)) not in burger_titles:
+                game_failed = True  # Fail if the burger is not correct
 
+    if sandwich_counter == len(required_burgers):  # Win condition: all required burgers made
+        print("Congratulations! You've made all the required burgers!")
+        break
 
-    # Update the game screen
+    # Redraw everything
     screen.fill(WHITE)
     draw_grid()
 
+    # Update the screen
     pygame.display.update()
 
-    # Game timeout condition (you can change the logic to your desired timeout)
-    if time.time() - cook_start_time > COOK_TIME and is_cooking:
-        is_cooking = False  # Automatically stop cooking after the time is up
-
-    # Check if time is up and show the failed message
-    if game_failed:
-        pygame.time.delay(3000)  # Wait for 3 seconds before reset
-        reset_game()
-
-    time.sleep(0.1)  # Control frame rate
-
-# Close pygame
+    # Frame rate control
+    pygame.time.Clock().tick(30)
 
 pygame.quit()

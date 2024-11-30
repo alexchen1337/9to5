@@ -117,6 +117,8 @@ end_text = ""
 tasks = [
     "Complete Typing Test",
     "Handle Email Inbox",
+    "Make Coffee", 
+    "Make Burgers"
 ]
 
 # Initialize the TaskList (update position to top left)
@@ -306,3 +308,4 @@ while end_running:
 
 # Quit Pygame
 pygame.quit()
+

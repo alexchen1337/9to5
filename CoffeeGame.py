@@ -1,15 +1,16 @@
-# pygame.quit()
 import pygame
 import time
 import random
+from IntroScreen import IntroScreen 
+from player import Player
 
 # Initialize pygame
 pygame.init()
 
 # Screen dimensions and grid settings
-SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
-GRID_SIZE = 100  # Size of each grid cell
-COLUMNS, ROWS = 8, 5  # Set based on kitchen_layout dimensions
+SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
+GRID_SIZE = 128  # Size of each grid cell
+COLUMNS, ROWS = 10, 5  # Set based on kitchen_layout dimensions
 
 # Colors
 WHITE = (255, 255, 255)
@@ -24,11 +25,11 @@ pygame.display.set_caption("Overcooked-style Game Layout")
 
 # Define kitchen layout and ingredient locations
 kitchen_layout = [
-    [' ', 'I', 'I', ' ', ' ', ' ', ' ', 'S'],  # I = Ingredient, C = Cooking, S = Serving
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    ['C', 'C', ' ', ' ', ' ', 'I', 'I', ' ']
+    [' ', 'I', 'I', ' ', ' ', ' ', ' ', ' ', ' ', 'S'],  # I = Ingredient, C = Cooking, S = Serving
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    ['C', 'C', ' ', ' ', ' ', 'I', 'I', ' ', ' ', ' ']
 ]
 
 # Ingredient types at specific locations
@@ -72,7 +73,20 @@ COOK_TIME = 3  # Seconds to brew an item
 current_coffee_type = random.choice(required_coffees)  # Randomly select a new coffee type
 game_failed = False  # Track game state
 
+# Add a new global variable to track the number of coffees made
+coffees_made = 0  # Initialize counter for brewed coffees
+
 # Load images for player, floor tiles, and stations
+# sprite_paths = [
+#     "./assets/player0.png",
+#     "./assets/player1.png",
+#     "./assets/player2.png"
+# ]
+# intro_screen = IntroScreen(screen, sprite_paths)
+# selected_sprite = intro_screen.selected_sprite
+# player = selected_sprite
+# player_image = Player(selected_sprite, scale_factor=8, screen_width=SCREEN_WIDTH, screen_height=SCREEN_HEIGHT)
+
 player_image = pygame.image.load("assets/player0.png")  # Player image
 player_image = pygame.transform.scale(player_image, (GRID_SIZE, GRID_SIZE))
 
@@ -100,7 +114,6 @@ ingredient_images = {
         pygame.image.load("assets/Greek Yogurt.png"), (GRID_SIZE, GRID_SIZE)
     ),
 }
-
 
 def draw_grid():
     for row in range(ROWS):
@@ -147,7 +160,6 @@ def draw_grid():
         text_rect = failed_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
         screen.blit(failed_text, text_rect)
 
-
 def reset_game():
     global held_items, is_cooking, cook_start_time, current_coffee_type, player_x, player_y, game_failed
     held_items = []
@@ -156,7 +168,6 @@ def reset_game():
     current_coffee_type = random.choice(required_coffees)  # Randomly select a new coffee type
     player_x, player_y = 3, 2  # Reset player position
     game_failed = False  # Reset failure state
-
 
 # Main game loop
 running = True
@@ -175,19 +186,19 @@ while running:
                     player_y -= 1
                 elif event.key == pygame.K_DOWN and player_y < ROWS - 1:
                     player_y += 1
-            
+
             if event.key == pygame.K_SPACE:
                 # Check if player is on an ingredient station to pick up
                 if kitchen_layout[player_y][player_x] == 'I':
                     item = ingredient_locations.get((player_y, player_x), None)
                     if item and item not in held_items:  # Avoid duplicates
                         held_items.append(item)
-                
+
                 # Start brewing if on a cooking station and holding "Coffee Beans"
                 elif kitchen_layout[player_y][player_x] == 'C' and "Coffee Beans" in held_items and not is_cooking:
                     is_cooking = True
                     cook_start_time = time.time()
-                
+
                 elif kitchen_layout[player_y][player_x] == 'S' and held_items and not is_cooking:
                     # Convert held items to a sorted tuple for lookup
                     brewed_items_tuple = tuple(sorted(held_items))
@@ -197,6 +208,7 @@ while running:
                     if title == current_coffee_type:
                         print(f"Served: {title} - SUCCESS!")
                         held_items = [title]  # Update held items with the brewed title
+                        coffees_made += 1  # Increment the number of successfully brewed coffees
                         reset_game()  # Restart the game with a new coffee requirement
                     else:
                         game_failed = True  # Set game failed state
@@ -207,6 +219,16 @@ while running:
         if time.time() - cook_start_time >= COOK_TIME:
             is_cooking = False
             print("Brewing complete!")
+
+    # Check if 5 coffees have been made and quit the game
+    if coffees_made >= 5:
+        print("5 Coffees Made! Hopefully you don't get fired!")
+        running = False  # End the game
+
+    # Check if time is up and show the failed message
+    if game_failed:
+        pygame.time.delay(2000)  # Wait for 2 seconds before reset
+        reset_game()
 
     # Redraw the game
     screen.fill(WHITE)

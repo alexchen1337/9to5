@@ -46,6 +46,14 @@ class SandwichGame:
         self.COOK_TIME = 3  # Seconds to cook a burger
         self.GRID_SIZE = 128
         self.load_images()
+        self.burger_recipes = {
+            "Cheeseburger": ["Cheese", "Bun", "Patty"],
+            "Tomato Burger": ["Tomato", "Bun", "Patty"],
+            "Lettuce Burger": ["Lettuce", "Bun", "Patty"],
+            "Cheese Tomato Burger": ["Cheese", "Tomato", "Bun", "Patty"],
+            "Cheese Lettuce Burger": ["Cheese", "Lettuce", "Bun", "Patty"],
+            "Ultimate Burger": ["Cheese", "Tomato", "Lettuce", "Bun", "Patty"]
+        }
 
     def load_images(self):
         self.player_image = pygame.image.load("assets/player0.png")
@@ -93,13 +101,20 @@ class SandwichGame:
                     brewed_items_tuple = tuple(sorted(self.held_items))
                     title = self.burger_titles.get(brewed_items_tuple, "Brewed Unknown")
                     if title == self.current_burger_type:
+                        # Show success message
+                        self.show_result_message("Success!", (0, 255, 0))  # Green text
+                        pygame.time.wait(1000)  # Wait 1 second
                         self.sandwich_counter += 1
                         self.reset_game()
                     else:
+                        # Show failure message
+                        self.show_result_message("Wrong Recipe!", (255, 0, 0))  # Red text
+                        pygame.time.wait(1000)  # Wait 1 second
                         self.game_failed = True
 
     def update(self):
-        self.screen.fill((255, 255, 255))
+        # Change from white to light blue background
+        self.screen.fill((173, 216, 230))  # Light blue RGB
         self.draw_grid()
         if self.is_cooking and time.time() - self.cook_start_time >= self.COOK_TIME:
             self.is_cooking = False
@@ -129,7 +144,11 @@ class SandwichGame:
         self.screen.blit(text, (10, self.screen.get_height() - 40))
         required_text = f"Required Burger: {self.current_burger_type}"
         required_surface = self.font.render(required_text, True, (0, 0, 0))
-        self.screen.blit(required_surface, (10, self.screen.get_height() - 70))
+        self.screen.blit(required_surface, (10, self.screen.get_height() - 100))
+        ingredients = self.burger_recipes[self.current_burger_type]
+        ingredients_text = f"Required Ingredients: {', '.join(ingredients)}"
+        ingredients_surface = self.font.render(ingredients_text, True, (0, 0, 0))
+        self.screen.blit(ingredients_surface, (10, self.screen.get_height() - 70))
 
     def reset_game(self):
         self.held_items = []
@@ -144,3 +163,13 @@ class SandwichGame:
 
     def is_successful(self):
         return self.success
+
+    def show_result_message(self, message, color):
+        # Create large text for the message
+        large_font = pygame.font.Font(None, 74)  # Larger font size
+        text_surface = large_font.render(message, True, color)
+        text_rect = text_surface.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2))
+        
+        # Draw the message
+        self.screen.blit(text_surface, text_rect)
+        pygame.display.flip()

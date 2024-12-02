@@ -2,13 +2,17 @@ import pygame
 from player import Player
 from IntroScreen import IntroScreen
 from EndScreen import EndScreen
-from Meter import Meter  # Import your Meter class
+from Meter import Meter  
 from StoreRunner import runStore
 from TaskList import TaskList
 from TypingGame import TypingGame
+from EmailGame import EmailGame
 from Relationships import RelationshipGraph
 from Npc import NPC
 from DayTransitionScreen import DayTransitionScreen
+from SandwichGame import SandwichGame 
+from CoffeeGame import CoffeeGame  
+from CutsceneScreen import CutsceneScreen
 
 # Initialize Pygame
 pygame.init()
@@ -124,6 +128,9 @@ tasks = [
 # Initialize the TaskList (update position to top left)
 task_list = TaskList(tasks, game_font, x=10, y=10, color=(255, 255, 255))
 
+# After initializing task_list and before the main game loop
+tasks_for_today = tasks.copy()  # Create a copy of the tasks list to use for today
+
 # After initializing player
 relationship_graph = RelationshipGraph()  # Initialize relationship system
 base_task_reward = 50  # Base reward for completing tasks
@@ -136,6 +143,75 @@ def calculate_reward():
     relationship_bonus = (boss_relationship - 80) // 20 * 5  # Start bonus at 80 relationship
     reward = base_task_reward + relationship_bonus
     return max(min_task_reward, min(reward, 100))  # Cap between min_task_reward and 100
+
+# After pygame.init(), add this with the other image loads:
+office_background = pygame.image.load('./assets/office.jpeg')
+office_background = pygame.transform.scale(office_background, (1280, 720))
+
+def run_game(game):
+    game.start_game()
+    game_running = True
+    
+    while game_running:
+        for game_event in pygame.event.get():
+            if game_event.type == pygame.QUIT:
+                return False
+            game.handle_event(game_event)
+        
+        screen.fill((30, 30, 30))
+        game.update()
+        pygame.display.flip()
+        
+        if game.is_finished():
+            game_running = False
+            return game.is_successful()
+
+def handle_game_result(success, task_index, game_type):
+    if success:
+        task_list.toggle_task(task_index)
+        player.energy.decrease(10)
+        relationship_graph.increase_relationship("player", "boss", 5)
+        reward = calculate_reward()
+        player.checkings.increase(reward)
+        print(f"Earned ${reward} from {game_type} task!")
+        print("Boss is impressed with your performance!")
+    else:
+        relationship_graph.decrease_relationship("player", "boss", 10)
+        print("Boss is disappointed with your performance!")
+
+# After initializing pygame and before the main game loop
+cutscene_screen = CutsceneScreen(screen, game_font)
+
+def handle_coworker_relationship(relationship_graph, player, cutscene_screen):
+    coworker_relationship = relationship_graph.get_relationship("player", "coworker")
+    
+    # Check if relationship is below threshold and hasn't triggered yet
+    if coworker_relationship < coworker.gossip_threshold and not coworker.has_triggered_gossip:
+        coworker.has_triggered_gossip = True
+        
+        # Play cutscene
+        cutscene_screen.start("gossip")
+        waiting_for_cutscene = True
+        while waiting_for_cutscene:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return False
+                if cutscene_screen.update(event):
+                    waiting_for_cutscene = False
+            cutscene_screen.draw()
+            pygame.display.flip()
+            clock.tick(FPS)
+        
+        # Decrease salary (modify checkings account)
+        current_balance = player.checkings.get_value()
+        salary_reduction = current_balance * 0.2  # 20% salary reduction
+        player.checkings.decrease(salary_reduction)
+        
+        # Show message about salary reduction
+        print(f"Your poor relationship with your coworker has affected your reputation.")
+        print(f"The boss has decided to reduce your salary by 20%")
+    
+    return True  # Always return True unless there's a quit event
 
 while running:
 
@@ -162,41 +238,75 @@ while running:
         
         # Move task handling to office screen (current_screen == 2)
         if current_screen == 2 and event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_1 and not task_list.is_completed(0):  # Typing Game
-                typing_game = TypingGame(screen, game_font)
-                typing_game.start_game()
-                game_running = True
-                
-                while game_running:
-                    for game_event in pygame.event.get():
-                        if game_event.type == pygame.QUIT:
-                            running = False
-                            game_running = False
-                        typing_game.handle_event(game_event)
+            for task_index, task in enumerate(tasks_for_today):
+                if event.key == pygame.K_1 + task_index and not task_list.is_completed(task_index):
+                    if "Typing" in task:
+                        cutscene_screen.start("typing")
+                        waiting_for_cutscene = True
+                        while waiting_for_cutscene:
+                            for cutscene_event in pygame.event.get():
+                                if cutscene_event.type == pygame.QUIT:
+                                    running = False
+                                    waiting_for_cutscene = False
+                                if cutscene_screen.update(cutscene_event):
+                                    waiting_for_cutscene = False
+                            cutscene_screen.draw()
+                            clock.tick(FPS)
+                        
+                        typing_game = TypingGame(screen, game_font)
+                        success = run_game(typing_game)
+                        handle_game_result(success, task_index, "typing")
                     
-                    screen.fill((30, 30, 30))  # Dark background
-                    typing_game.update()
-                    pygame.display.flip()
+                    elif "Email" in task:
+                        cutscene_screen.start("email")
+                        waiting_for_cutscene = True
+                        while waiting_for_cutscene:
+                            for cutscene_event in pygame.event.get():
+                                if cutscene_event.type == pygame.QUIT:
+                                    running = False
+                                    waiting_for_cutscene = False
+                                if cutscene_screen.update(cutscene_event):
+                                    waiting_for_cutscene = False
+                            cutscene_screen.draw()
+                            clock.tick(FPS)
+                        
+                        email_game = EmailGame(screen, game_font)
+                        success = run_game(email_game)
+                        handle_game_result(success, task_index, "email")
                     
-                    if typing_game.is_finished():
-                        game_running = False
-                        if typing_game.is_successful():
-                            task_list.toggle_task(0)
-                            player.energy.decrease(10)
-                            # Increase relationship with boss on success
-                            relationship_graph.increase_relationship("player", "boss", 5)  # Increase by 5 points
-                            reward = calculate_reward()
-                            player.checkings.increase(reward)
-                            print(f"Earned ${reward} from typing task!")
-                            print("Boss is impressed with your performance!")
-                        else:
-                            # Failed the game
-                            relationship_graph.decrease_relationship("player", "boss", 10)
-                            print("Boss is disappointed with your performance!")
-
-            elif event.key == pygame.K_2 and not task_list.is_completed(1):  # Email Game
-                # Similar structure for email game
-                pass
+                    elif "Coffee" in task:
+                        cutscene_screen.start("coffee")
+                        waiting_for_cutscene = True
+                        while waiting_for_cutscene:
+                            for cutscene_event in pygame.event.get():
+                                if cutscene_event.type == pygame.QUIT:
+                                    running = False
+                                    waiting_for_cutscene = False
+                                if cutscene_screen.update(cutscene_event):
+                                    waiting_for_cutscene = False
+                            cutscene_screen.draw()
+                            clock.tick(FPS)
+                        
+                        coffee_game = CoffeeGame(screen, game_font)
+                        success = run_game(coffee_game)
+                        handle_game_result(success, task_index, "coffee")
+                    
+                    elif "Burger" in task:
+                        cutscene_screen.start("sandwich")
+                        waiting_for_cutscene = True
+                        while waiting_for_cutscene:
+                            for cutscene_event in pygame.event.get():
+                                if cutscene_event.type == pygame.QUIT:
+                                    running = False
+                                    waiting_for_cutscene = False
+                                if cutscene_screen.update(cutscene_event):
+                                    waiting_for_cutscene = False
+                            cutscene_screen.draw()
+                            clock.tick(FPS)
+                        
+                        sandwich_game = SandwichGame(screen, game_font)
+                        success = run_game(sandwich_game)
+                        handle_game_result(success, task_index, "sandwich")
 
     # Get key presses for player movement
     keys_pressed = pygame.key.get_pressed()
@@ -252,7 +362,7 @@ while running:
         background_image = pygame.transform.scale(background_image, (1280, 720))
         screen.blit(background_image, (0,0))
     elif (current_screen == 2):
-        screen.fill((50, 50, 150)) # Dark Blue
+        screen.blit(office_background, (0,0))
         task_list.draw(screen)  # Move task list to work screen
         # Update and draw NPCs in office
         npc_group.update(SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -262,6 +372,67 @@ while running:
             npc.draw_minibar(screen, relationship_graph, npc.name.lower())
             npc.draw_name(screen)  # Draw name
 
+        # Update NPCs with player position
+        for npc in npc_group:
+            npc.update(SCREEN_WIDTH, SCREEN_HEIGHT, player.rect)
+            
+            # Check for interaction
+            if npc.is_near_player(player.rect):
+                npc.draw_interaction_prompt(screen, game_font)
+                
+                if keys_pressed[pygame.K_RETURN]:
+                    dialogue = npc.interact(relationship_graph)
+                    if dialogue:  # Only show if interaction cooldown has passed
+                        waiting_for_choice = True
+                        show_result = None
+                        result_timer = 0
+                        
+                        while waiting_for_choice:
+                            for event in pygame.event.get():
+                                if event.type == pygame.QUIT:
+                                    running = False
+                                    waiting_for_choice = False
+                                elif event.type == pygame.KEYDOWN:
+                                    if event.key in [pygame.K_1, pygame.K_2]:
+                                        choice_idx = 0 if event.key == pygame.K_1 else 1
+                                        effect = dialogue['options'][choice_idx]['effect']
+                                        
+                                        # Determine if it was a good choice
+                                        show_result = effect > 0
+                                        
+                                        if effect > 0:
+                                            relationship_graph.increase_relationship("player", npc.name.lower(), abs(effect))
+                                        else:
+                                            relationship_graph.decrease_relationship("player", npc.name.lower(), abs(effect))
+                                        
+                                        result_timer = pygame.time.get_ticks()
+                                        
+                            # Draw the game state
+                            screen.fill((30, 30, 30))
+                            
+                            # Draw background elements
+                            if current_screen == 1:
+                                background_image = pygame.image.load('./assets/HomeScreen.png')
+                                background_image = pygame.transform.scale(background_image, (1280, 720))
+                                screen.blit(background_image, (0,0))
+                            elif current_screen == 2:
+                                screen.blit(office_background, (0,0))
+                            
+                            # Draw sprites
+                            player_group.draw(screen)
+                            npc_group.draw(screen)
+                            
+                            # Draw dialogue box with result if available
+                            npc.draw_dialogue_box(screen, game_font, dialogue, show_result)
+                            
+                            pygame.display.flip()
+                            
+                            # If showing result, wait 2 seconds then close
+                            if show_result is not None:
+                                if pygame.time.get_ticks() - result_timer > 2000:  # 2 seconds
+                                    waiting_for_choice = False
+                            
+                            clock.tick(FPS)
 
     # Draw the player
     player_group.draw(screen)
@@ -288,6 +459,10 @@ while running:
 
     if keys_pressed[pygame.K_e]:  # Enter the store
         storeRunning = runStore(screen, game_font, player)
+
+    if current_screen == 2:  # Only check during office screen
+        if not handle_coworker_relationship(relationship_graph, player, cutscene_screen):
+            running = False  # Only end if there's a quit event
 
 # Create and display the intro screen
 end_screen = EndScreen(screen, selected_sprite)

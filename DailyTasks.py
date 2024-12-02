@@ -14,27 +14,16 @@ class Task:
 
 class DailyTasks:
     def __init__(self):
-        self.tasks = [
-            Task("Check Emails"),
-            Task("Make Coffee"),
-            Task("Taking Notes"),
-            Task("Sorting Emails"),
-            Task("Proofreading Documents"),
+        self.all_tasks = [
+            "Complete Typing Test",
+            "Handle Email Inbox",
+            "Make Coffee",
+            "Make Burgers"
         ]
-        self.priority_queue = []
-        self.completed_tasks = []
 
-    def select_prioritized_tasks(self):
-        # Randomly select a few tasks to be more important
-        important_tasks = random.sample(self.tasks, k=min(3, len(self.tasks)))
-        for task in important_tasks:
-            # Set higher priority for selected tasks
-            task.priority = 1  # Higher priority
-            heapq.heappush(self.priority_queue, task)
-
-        # Add the rest of the tasks with lower priority
-        for task in self.tasks:
-            if task not in important_tasks:
-                heapq.heappush(self.priority_queue, task)
+    def get_daily_tasks(self, num_tasks=2):
+        """Returns 2-3 random tasks for the day"""
+        num_tasks = random.randint(2, 3) if num_tasks == 2 else num_tasks
+        return random.sample(self.all_tasks, num_tasks)
 
     

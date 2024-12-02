@@ -1,247 +1,146 @@
 import pygame
 import time
 import random
-from player import Player
 from Relationships import RelationshipGraph
 
-# Initialize pygame
-pygame.init()
-relationship_graph = RelationshipGraph()
+class SandwichGame:
+    def __init__(self, screen, font):
+        self.screen = screen
+        self.font = font
+        self.relationship_graph = RelationshipGraph()
+        self.held_items = []
+        self.is_cooking = False
+        self.cook_start_time = 0
+        self.current_burger_type = None
+        self.sandwich_counter = 0
+        self.game_failed = False
+        self.finished = False
+        self.success = False
+        self.player_x, self.player_y = 3, 2  # Start in the middle of the layout
+        self.required_burgers = [
+            "Cheeseburger", "Tomato Burger", "Lettuce Burger",
+            "Cheese Tomato Burger", "Cheese Lettuce Burger", "Ultimate Burger"
+        ]
+        self.burger_titles = {
+            tuple(sorted(["Cheese", "Bun", "Patty"])): "Cheeseburger",
+            tuple(sorted(["Tomato", "Bun", "Patty"])): "Tomato Burger",
+            tuple(sorted(["Lettuce", "Bun", "Patty"])): "Lettuce Burger",
+            tuple(sorted(["Cheese", "Tomato", "Bun", "Patty"])): "Cheese Tomato Burger",
+            tuple(sorted(["Cheese", "Lettuce", "Bun", "Patty"])): "Cheese Lettuce Burger",
+            tuple(sorted(["Cheese", "Tomato", "Lettuce", "Bun", "Patty"])): "Ultimate Burger",
+        }
+        self.kitchen_layout = [
+            [' ', 'I', 'I', ' ', ' ', ' ', ' ', ' ', ' ', 'S'],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            ['C', 'C', ' ', ' ', 'I', 'I', 'I', ' ', ' ', ' ']
+        ]
+        self.ingredient_locations = {
+            (0, 1): "Cheese",
+            (0, 2): "Bun",
+            (4, 5): "Lettuce",
+            (4, 6): "Patty",
+            (4, 4): "Tomato"
+        }
+        self.COOK_TIME = 3  # Seconds to cook a burger
+        self.GRID_SIZE = 128
+        self.load_images()
 
-# Screen dimensions and grid settings
-SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
-GRID_SIZE = 128  # Size of each grid cell
-COLUMNS, ROWS = 10, 5  # Set based on kitchen_layout dimensions
+    def load_images(self):
+        self.player_image = pygame.image.load("assets/player0.png")
+        self.player_image = pygame.transform.scale(self.player_image, (self.GRID_SIZE, self.GRID_SIZE))
+        self.floor_tile_image = pygame.image.load("assets/Tile.png")
+        self.floor_tile_image = pygame.transform.scale(self.floor_tile_image, (self.GRID_SIZE, self.GRID_SIZE))
+        self.cooking_station_image = pygame.image.load("assets/Stove.png")
+        self.cooking_station_image = pygame.transform.scale(self.cooking_station_image, (self.GRID_SIZE, self.GRID_SIZE))
+        self.serving_station_image = pygame.image.load("assets/Table.png")
+        self.serving_station_image = pygame.transform.scale(self.serving_station_image, (self.GRID_SIZE, self.GRID_SIZE))
+        self.ingredient_images = {
+            "Cheese": pygame.transform.scale(pygame.image.load("assets/Cheese.png"), (self.GRID_SIZE, self.GRID_SIZE)),
+            "Tomato": pygame.transform.scale(pygame.image.load("assets/Tomato.png"), (self.GRID_SIZE, self.GRID_SIZE)),
+            "Lettuce": pygame.transform.scale(pygame.image.load("assets/Lettuce.png"), (self.GRID_SIZE, self.GRID_SIZE)),
+            "Patty": pygame.transform.scale(pygame.image.load("assets/Meat.png"), (self.GRID_SIZE, self.GRID_SIZE)),
+            "Bun": pygame.transform.scale(pygame.image.load("assets/Bun.png"), (self.GRID_SIZE, self.GRID_SIZE)),
+        }
 
-# Colors
-WHITE = (255, 255, 255)
-GREY = (200, 200, 200)
-COOKING_BAR_COLOR = (255, 69, 0)  # Progress bar color
-FAIL_COLOR = (255, 0, 0)  # Color for failed message
-SUCCESS_COLOR = (0, 255, 0)  # Color for success message
+    def start_game(self):
+        self.reset_game()
+        self.finished = False
+        self.success = False
 
-# Create screen
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Burger-Cooking Game Layout")
+    def handle_event(self, event):
+        if event.type == pygame.KEYDOWN:
+            if not self.is_cooking and not self.game_failed:
+                if event.key == pygame.K_LEFT and self.player_x > 0:
+                    self.player_x -= 1
+                elif event.key == pygame.K_RIGHT and self.player_x < len(self.kitchen_layout[0]) - 1:
+                    self.player_x += 1
+                elif event.key == pygame.K_UP and self.player_y > 0:
+                    self.player_y -= 1
+                elif event.key == pygame.K_DOWN and self.player_y < len(self.kitchen_layout) - 1:
+                    self.player_y += 1
 
-# Define kitchen layout and ingredient locations
-kitchen_layout = [
-    [' ', 'I', 'I', ' ', ' ', ' ', ' ', ' ', ' ', 'S'],  # I = Ingredient, C = Cooking, S = Serving
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    ['C', 'C', ' ', ' ', 'I', 'I', 'I', ' ', ' ', ' ']
-]
-
-# Ingredient types at specific locations
-ingredient_locations = {
-    (0, 1): "Cheese",
-    (0, 2): "Bun",
-    (4, 5): "Lettuce",
-    (4, 6): "Patty",
-    (4, 4): "Tomato"
-}
-
-# Burger titles with sorted tuples as keys
-burger_titles = {
-    tuple(sorted(["Cheese", "Bun", "Patty"])): "Cheeseburger",
-    tuple(sorted(["Tomato", "Bun", "Patty"])): "Tomato Burger",
-    tuple(sorted(["Lettuce", "Bun", "Patty"])): "Lettuce Burger",
-    tuple(sorted(["Cheese", "Tomato", "Bun", "Patty"])): "Cheese Tomato Burger",
-    tuple(sorted(["Cheese", "Lettuce", "Bun", "Patty"])): "Cheese Lettuce Burger",
-    tuple(sorted(["Cheese", "Tomato", "Lettuce", "Bun", "Patty"])): "Ultimate Burger",
-}
-
-# List of required burger types
-required_burgers = [
-    "Cheeseburger",
-    "Tomato Burger",
-    "Lettuce Burger",
-    "Cheese Tomato Burger",
-    "Cheese Lettuce Burger",
-    "Ultimate Burger"
-]
-
-# Player starting position
-player_x, player_y = 3, 2  # Start in the middle of the layout
-held_items = []  # List to track what the player is holding
-is_cooking = False
-cook_start_time = 0
-COOK_TIME = 3  # Seconds to cook a burger
-current_burger_type = random.choice(required_burgers)  # Randomly select a new burger type
-game_failed = False  # Track game state
-
-# Initialize sandwich counter
-sandwich_counter = 0
-
-# Load images for player, floor tiles, and stations
-player_image = pygame.image.load("assets/player0.png")  # Player image
-player_image = pygame.transform.scale(player_image, (GRID_SIZE, GRID_SIZE))
-
-floor_tile_image = pygame.image.load("assets/Tile.png")  # Floor tile image
-floor_tile_image = pygame.transform.scale(floor_tile_image, (GRID_SIZE, GRID_SIZE))
-
-cooking_station_image = pygame.image.load("assets/Stove.png")  # Cooking station image
-cooking_station_image = pygame.transform.scale(cooking_station_image, (GRID_SIZE, GRID_SIZE))
-
-serving_station_image = pygame.image.load("assets/Table.png")  # Serving station image
-serving_station_image = pygame.transform.scale(serving_station_image, (GRID_SIZE, GRID_SIZE))
-
-# Load unique ingredient images
-ingredient_images = {
-    "Cheese": pygame.transform.scale(
-        pygame.image.load("assets/Cheese.png"), (GRID_SIZE, GRID_SIZE)
-    ),
-    "Tomato": pygame.transform.scale(
-        pygame.image.load("assets/Tomato.png"), (GRID_SIZE, GRID_SIZE)
-    ),
-    "Lettuce": pygame.transform.scale(
-        pygame.image.load("assets/Lettuce.png"), (GRID_SIZE, GRID_SIZE)
-    ),
-    "Patty": pygame.transform.scale(
-        pygame.image.load("assets/Meat.png"), (GRID_SIZE, GRID_SIZE)
-    ),
-    "Bun": pygame.transform.scale(
-        pygame.image.load("assets/Bun.png"), (GRID_SIZE, GRID_SIZE)
-    ),
-}
-
-def draw_grid():
-    for row in range(ROWS):
-        for col in range(COLUMNS):
-            x, y = col * GRID_SIZE, row * GRID_SIZE
-
-            # Draw floor tile for every cell
-            screen.blit(floor_tile_image, (x, y))
-            
-            # Draw kitchen stations based on layout
-            if kitchen_layout[row][col] == 'I':  # Ingredient station
-                ingredient = ingredient_locations.get((row, col), None)
-                if ingredient and ingredient in ingredient_images:
-                    screen.blit(ingredient_images[ingredient], (x, y))
-            elif kitchen_layout[row][col] == 'C':  # Cooking station
-                screen.blit(cooking_station_image, (x, y))
-            elif kitchen_layout[row][col] == 'S':  # Serving station
-                screen.blit(serving_station_image, (x, y))
-
-    # Draw the player
-    screen.blit(player_image, (player_x * GRID_SIZE, player_y * GRID_SIZE))
-
-    # Display held items text
-    font = pygame.font.Font(None, 36)
-    item_text = f"Held Items: {', '.join(held_items) if held_items else 'None'}"
-    text = font.render(item_text, True, (0, 0, 0))
-    screen.blit(text, (10, SCREEN_HEIGHT - 40))
-
-    # Draw required coffee type
-    required_text = f"Burger Needed: {current_burger_type}"
-    required_surface = font.render(required_text, True, (0, 0, 0))
-    screen.blit(required_surface, (10, SCREEN_HEIGHT - 70))
-
-    # Draw brewing progress bar if brewing
-    if is_cooking:
-        elapsed_time = time.time() - cook_start_time
-        progress = min(1, elapsed_time / COOK_TIME)
-        pygame.draw.rect(screen, COOKING_BAR_COLOR, (player_x * GRID_SIZE, player_y * GRID_SIZE + GRID_SIZE - 10, int(GRID_SIZE * progress), 10))
-
-    # Draw failed message if applicable
-    if game_failed:
-        font = pygame.font.Font(None, 72)
-        failed_text = font.render("FAILED", True, FAIL_COLOR)
-        text_rect = failed_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-        screen.blit(failed_text, text_rect)
-
-def reset_game():
-    global held_items, is_cooking, cook_start_time, current_burger_type, player_x, player_y, game_failed
-    held_items = []
-    is_cooking = False
-    cook_start_time = 0
-    current_burger_type = random.choice(required_burgers)  # Randomly select a new burger type
-    player_x, player_y = 3, 2  # Reset player position
-    game_failed = False  # Reset failure state
-
-def evaluate_performance():
-    if sandwich_counter >= 6:
-        relationship_graph.increase_relationship("player", "boss", 20)
-        print("Boss happiness increased due to good performance!")
-    elif game_failed:
-        relationship_graph.decrease_relationship("player", "boss", 20)
-        print("Boss happiness decreased due to poor performance!")
-    else:
-        relationship_graph.increase_relationship("player", "boss", 5)
-        print("Boss happiness increased due to good performance!")
-    relationship_graph.check_thresholds()
-
-# Main game loop
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.KEYDOWN:
-            if not is_cooking and not game_failed:  # Prevent movement while cooking or after failure
-                # Move with arrow keys
-                if event.key == pygame.K_LEFT and player_x > 0:
-                    player_x -= 1
-                elif event.key == pygame.K_RIGHT and player_x < COLUMNS - 1:
-                    player_x += 1
-                elif event.key == pygame.K_UP and player_y > 0:
-                    player_y -= 1
-                elif event.key == pygame.K_DOWN and player_y < ROWS - 1:
-                    player_y += 1
-            
             if event.key == pygame.K_SPACE:
-                # Check if player is on an ingredient station to pick up
-                if kitchen_layout[player_y][player_x] == 'I':
-                    item = ingredient_locations.get((player_y, player_x), None)
-                    if item and item not in held_items:  # Avoid duplicates
-                        held_items.append(item)
-                
-                # Start brewing if on a cooking station and holding "Coffee Beans"
-                elif kitchen_layout[player_y][player_x] == 'C' and "Patty" in held_items and not is_cooking:
-                    is_cooking = True
-                    cook_start_time = time.time()
-
-                elif kitchen_layout[player_y][player_x] == 'S' and held_items and not is_cooking:
-                    # Convert held items to a sorted tuple for lookup
-                    brewed_items_tuple = tuple(sorted(held_items))
-                    title = burger_titles.get(brewed_items_tuple, "Brewed Unknown")  # Default to "Unknown"
-
-                    # Check if the brewed item matches the required coffee type
-                    if title == current_burger_type:
-                        print(f"Served: {title} - SUCCESS!")
-                        held_items = [title]  # Update held items with the brewed title
-                        sandwich_counter += 1  # Increment the number of successfully brewed coffees
-                        reset_game()  # Restart the game with a new coffee requirement
+                if self.kitchen_layout[self.player_y][self.player_x] == 'I':
+                    item = self.ingredient_locations.get((self.player_y, self.player_x), None)
+                    if item and item not in self.held_items:
+                        self.held_items.append(item)
+                elif self.kitchen_layout[self.player_y][self.player_x] == 'C' and "Patty" in self.held_items and not self.is_cooking:
+                    self.is_cooking = True
+                    self.cook_start_time = time.time()
+                elif self.kitchen_layout[self.player_y][self.player_x] == 'S' and self.held_items and not self.is_cooking:
+                    brewed_items_tuple = tuple(sorted(self.held_items))
+                    title = self.burger_titles.get(brewed_items_tuple, "Brewed Unknown")
+                    if title == self.current_burger_type:
+                        self.sandwich_counter += 1
+                        self.reset_game()
                     else:
-                        game_failed = True  # Set game failed state
-                        print(f"Served: {title} - FAILED! Required: {current_burger_type}")
+                        self.game_failed = True
 
-    # Update game state
-    if is_cooking:
-        if time.time() - cook_start_time >= COOK_TIME:
-            is_cooking = False
-            print("Cooking complete!")
+    def update(self):
+        self.screen.fill((255, 255, 255))
+        self.draw_grid()
+        if self.is_cooking and time.time() - self.cook_start_time >= self.COOK_TIME:
+            self.is_cooking = False
+        if self.sandwich_counter >= 5:
+            self.finished = True
+            self.success = True
+        if self.game_failed:
+            self.finished = True
+            self.success = False
 
-    if sandwich_counter >= 6:  # Win condition: all required burgers made
-        print("Congratulations! You've made all the required burgers!")
-        evaluate_performance()
-        running = False  # End the game
+    def draw_grid(self):
+        for row in range(len(self.kitchen_layout)):
+            for col in range(len(self.kitchen_layout[0])):
+                x, y = col * self.GRID_SIZE, row * self.GRID_SIZE
+                self.screen.blit(self.floor_tile_image, (x, y))
+                if self.kitchen_layout[row][col] == 'I':
+                    ingredient = self.ingredient_locations.get((row, col), None)
+                    if ingredient and ingredient in self.ingredient_images:
+                        self.screen.blit(self.ingredient_images[ingredient], (x, y))
+                elif self.kitchen_layout[row][col] == 'C':
+                    self.screen.blit(self.cooking_station_image, (x, y))
+                elif self.kitchen_layout[row][col] == 'S':
+                    self.screen.blit(self.serving_station_image, (x, y))
+        self.screen.blit(self.player_image, (self.player_x * self.GRID_SIZE, self.player_y * self.GRID_SIZE))
+        item_text = f"Held Items: {', '.join(self.held_items) if self.held_items else 'None'}"
+        text = self.font.render(item_text, True, (0, 0, 0))
+        self.screen.blit(text, (10, self.screen.get_height() - 40))
+        required_text = f"Required Burger: {self.current_burger_type}"
+        required_surface = self.font.render(required_text, True, (0, 0, 0))
+        self.screen.blit(required_surface, (10, self.screen.get_height() - 70))
 
-    # Check if time is up and show the failed message
-    if game_failed:
-        pygame.time.delay(2000)  # Wait for 2 seconds before reset
-        evaluate_performance()
-        reset_game()
+    def reset_game(self):
+        self.held_items = []
+        self.is_cooking = False
+        self.cook_start_time = 0
+        self.current_burger_type = random.choice(self.required_burgers)
+        self.player_x, self.player_y = 3, 2
+        self.game_failed = False
 
-    # Redraw everything
-    screen.fill(WHITE)
-    draw_grid()
+    def is_finished(self):
+        return self.finished
 
-    # Update the screen
-    pygame.display.update()
-
-    # Frame rate control
-    pygame.time.Clock().tick(30)
-
-pygame.quit()
+    def is_successful(self):
+        return self.success

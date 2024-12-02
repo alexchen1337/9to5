@@ -379,6 +379,10 @@ def check_boss_relationship(relationship_graph, player, cutscene_screen):
     return True
 
 while running:
+    # Add this check with the other loss conditions at the start of the loop
+    if(player.checkings.get_value() <= 0):
+        running = False
+        end_text = "You ran out of money and had to file for bankruptcy."
 
     if(current_day > last_day):
         running = False

@@ -58,7 +58,7 @@ class CoffeeGame:
             "Ultimate Latte": ["Coffee Beans", "Creamer", "Sugar", "Milk"]
         }
         self.start_time = None
-        self.time_limit = 45  # 45 seconds
+        self.time_limit = 30  # Base time limit of 45 seconds
         self.coffees_to_make = 3  # Number of coffees to make
         self.time_remaining = self.time_limit
 

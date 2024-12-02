@@ -54,6 +54,7 @@ class SandwichGame:
             "Cheese Lettuce Burger": ["Cheese", "Lettuce", "Bun", "Patty"],
             "Ultimate Burger": ["Cheese", "Tomato", "Lettuce", "Bun", "Patty"]
         }
+        self.time_limit = 60  # Base time limit of 60 seconds
 
     def load_images(self):
         self.player_image = pygame.image.load("assets/player0.png")

@@ -159,12 +159,16 @@ base_task_reward = 50  # Base reward for completing tasks
 min_task_reward = 5    # Minimum reward possible
 
 # Function to calculate reward based on boss relationship
-def calculate_reward():
+def calculate_reward(relationship_graph):
     boss_relationship = relationship_graph.get_relationship("player", "boss")
-    # Every 20 points of relationship adds $5 to base reward
-    relationship_bonus = (boss_relationship - 80) // 20 * 5  # Start bonus at 80 relationship
-    reward = base_task_reward + relationship_bonus
-    return max(min_task_reward, min(reward, 100))  # Cap between min_task_reward and 100
+    base_reward = 15  # Base reward
+    
+    # Calculate multiplier based on relationship (0.5x to 2x)
+    relationship_multiplier = boss_relationship / 50  # 50 is neutral point
+    relationship_multiplier = max(0.5, min(2.0, relationship_multiplier))  # Clamp between 0.5x and 2x
+    
+    final_reward = base_reward * relationship_multiplier
+    return round(final_reward, 2)  # Round to 2 decimal places
 
 # After pygame.init(), add this with the other image loads:
 office_background = pygame.image.load('./assets/office.jpeg')
@@ -172,8 +176,14 @@ office_background = pygame.transform.scale(office_background, (1280, 720))
 
 def run_game(game):
     game.start_game()
-    game_running = True
     
+    # If it's day 30, halve the time limit for any game that has one
+    if current_day == 30:
+        if hasattr(game, 'time_limit'):
+            game.time_limit = game.time_limit / 2
+            print("FINAL DAY: Time limits halved! Good luck!")
+    
+    game_running = True
     while game_running:
         for game_event in pygame.event.get():
             if game_event.type == pygame.QUIT:
@@ -193,7 +203,7 @@ def handle_game_result(success, task_index, game_type):
         task_list.toggle_task(task_index)
         player.energy.decrease(10)
         relationship_graph.increase_relationship("player", "boss", 5)
-        reward = calculate_reward()
+        reward = calculate_reward(relationship_graph)
         player.checkings.increase(reward)
         print(f"Earned ${reward} from {game_type} task!")
         print("Boss is impressed with your performance!")
@@ -207,8 +217,8 @@ cutscene_screen = CutsceneScreen(screen, game_font)
 def handle_coworker_relationship(relationship_graph, player, cutscene_screen):
     coworker_relationship = relationship_graph.get_relationship("player", "coworker")
     
-    # Check if relationship is below threshold and hasn't triggered yet
-    if coworker_relationship < coworker.gossip_threshold and not coworker.has_triggered_gossip:
+    # Changed threshold from previous value to 50 - coworker gossips when below neutral
+    if coworker_relationship < 50 and not coworker.has_triggered_gossip:
         coworker.has_triggered_gossip = True
         
         # Play cutscene
@@ -224,16 +234,149 @@ def handle_coworker_relationship(relationship_graph, player, cutscene_screen):
             pygame.display.flip()
             clock.tick(FPS)
         
-        # Decrease salary (modify checkings account)
+        # Increase salary reduction from 20% to 25% for more impact
         current_balance = player.checkings.get_value()
-        salary_reduction = current_balance * 0.2  # 20% salary reduction
+        salary_reduction = current_balance * 0.25  # 25% salary reduction
         player.checkings.decrease(salary_reduction)
         
         # Show message about salary reduction
         print(f"Your poor relationship with your coworker has affected your reputation.")
-        print(f"The boss has decided to reduce your salary by 20%")
+        print(f"The boss has decided to reduce your salary by 25%")
     
-    return True  # Always return True unless there's a quit event
+    return True
+
+def check_boss_relationship(relationship_graph, player, cutscene_screen):
+    boss_relationship = relationship_graph.get_relationship("player", "boss")
+    
+    if boss_relationship < 50:
+        scenarios = [
+            # Original scenarios
+            {
+                "message": "Your boss has 'accidentally' thrown a stapler at you.",
+                "health_impact": -25
+            },
+            {
+                "message": "Your boss made you work through lunch break, citing 'urgent deadlines'.",
+                "health_impact": -20,
+                "energy_impact": -15
+            },
+            {
+                "message": "Your boss scheduled all your meetings for 6 AM this week.",
+                "health_impact": -15,
+                "energy_impact": -20
+            },
+            {
+                "message": "Your boss made you redo all of yesterday's work, claiming it was 'not up to standards'.",
+                "health_impact": -10,
+                "energy_impact": -25
+            },
+            {
+                "message": "Your boss 'forgot' to turn on the AC in your office during a heatwave.",
+                "health_impact": -20,
+                "energy_impact": -20
+            },
+            {
+                "message": "Your boss volunteered you for weekend inventory duty without asking.",
+                "health_impact": -15,
+                "energy_impact": -25
+            },
+            # New scenarios
+            {
+                "message": "Your boss 'lost' your vacation request form for the third time.",
+                "health_impact": -20,
+                "energy_impact": -20
+            },
+            {
+                "message": "Your boss took credit for your project during the company meeting.",
+                "health_impact": -25,
+                "energy_impact": -15
+            },
+            {
+                "message": "Your boss moved your desk next to the noisy printer room.",
+                "health_impact": -20,
+                "energy_impact": -20
+            },
+            {
+                "message": "Your boss assigned you to train the new intern while keeping all your deadlines.",
+                "health_impact": -15,
+                "energy_impact": -25
+            },
+            {
+                "message": "Your boss 'accidentally' spilled hot coffee on your laptop.",
+                "health_impact": -25,
+                "energy_impact": -15
+            },
+            {
+                "message": "Your boss scheduled your performance review for 7 PM on a Friday.",
+                "health_impact": -20,
+                "energy_impact": -20
+            },
+            {
+                "message": "Your boss made you present to the board with only 5 minutes notice.",
+                "health_impact": -25,
+                "energy_impact": -15
+            },
+            {
+                "message": "Your boss blamed you for their missed deadline in front of the whole team.",
+                "health_impact": -25,
+                "energy_impact": -15
+            },
+            {
+                "message": "Your boss 'reorganized' your filing system while you were at lunch.",
+                "health_impact": -15,
+                "energy_impact": -25
+            },
+            {
+                "message": "Your boss scheduled mandatory team building on your birthday weekend.",
+                "health_impact": -20,
+                "energy_impact": -20
+            }
+        ]
+        
+        scenario = random.choice(scenarios)
+        
+        # Play cutscene
+        cutscene_screen.start("boss_angry")
+        waiting_for_cutscene = True
+        while waiting_for_cutscene:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return False
+                if cutscene_screen.update(event):
+                    waiting_for_cutscene = False
+            cutscene_screen.draw()
+            pygame.display.flip()
+        
+        # Show scenario message with space to exit
+        font = pygame.font.Font(None, 36)
+        text_surface = font.render(scenario["message"], True, (255, 255, 255))
+        text_rect = text_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        
+        space_text = font.render("Press SPACE to continue", True, (255, 255, 255))
+        space_rect = space_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50))
+        
+        screen.blit(text_surface, text_rect)
+        screen.blit(space_text, space_rect)
+        pygame.display.flip()
+        
+        # Wait for single space press to exit
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return False
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                    waiting = False
+        
+        # Apply impacts
+        if "health_impact" in scenario:
+            player.health.decrease(abs(scenario["health_impact"]))
+        if "energy_impact" in scenario:
+            player.energy.decrease(abs(scenario["energy_impact"]))
+        
+        relationship_graph.set_relationship("player", "boss", 51)
+    
+    return True
 
 while running:
 
@@ -366,7 +509,7 @@ while running:
         coworker.rect.center = (SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2)
 
     elif (current_screen == 2 and player.rect.left <= 0):
-        # Show transition to home
+        # Remove task completion check and proceed directly with transition
         transition_screen = DayTransitionScreen(screen)
         waiting_for_transition = True
         
@@ -379,6 +522,11 @@ while running:
             if transition_screen.draw(current_day, going_to_work=False):
                 waiting_for_transition = False
             clock.tick(FPS)
+        
+        # Decrease coworker relationship at end of each day
+        current_relationship = relationship_graph.get_relationship("player", "coworker")
+        relationship_graph.decrease_relationship("player", "coworker", 5)  # Lose 5 points per day
+        print(f"Your coworker feels neglected. Relationship decreased to {relationship_graph.get_relationship('player', 'coworker')}")
         
         current_screen = 1
         player.rect.right = SCREEN_WIDTH - 10
@@ -491,6 +639,8 @@ while running:
     if current_screen == 2:  # Only check during office screen
         if not handle_coworker_relationship(relationship_graph, player, cutscene_screen):
             running = False  # Only end if there's a quit event
+        if not check_boss_relationship(relationship_graph, player, cutscene_screen):
+            running = False
 
 # Create and display the intro screen
 end_screen = EndScreen(screen, selected_sprite)

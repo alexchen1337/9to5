@@ -65,6 +65,12 @@ class CutsceneScreen:
                 "The boss overheard some concerning things about your work ethic...",
                 "This has affected your standing in the company...",
                 "Your salary has been reduced by 20%"
+            ],
+            
+            "boss_angry": [
+                "Your boss seems particularly upset today...",
+                "You can feel the tension in the air...",
+                "Something bad is about to happen..."
             ]
         }
         

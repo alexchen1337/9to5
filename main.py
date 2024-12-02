@@ -13,6 +13,7 @@ from DayTransitionScreen import DayTransitionScreen
 from SandwichGame import SandwichGame 
 from CoffeeGame import CoffeeGame  
 from CutsceneScreen import CutsceneScreen
+import random
 
 # Initialize Pygame
 pygame.init()
@@ -118,14 +119,35 @@ last_day = 30
 end_text = ""
 
 # Define the tasks for the office (replace with games)
-tasks = [
-    "Complete Typing Test",
-    "Handle Email Inbox",
-    "Make Coffee", 
-    "Make Burgers"
-]
+def get_daily_tasks(day):
+    all_tasks = [
+        "Complete Typing Test",
+        "Handle Email Inbox",
+        "Make Coffee",
+        "Make Burgers"
+    ]
+    
+    # First 4 days: one specific task per day
+    if day == 1:
+        return ["Complete Typing Test"]
+    elif day == 2:
+        return ["Handle Email Inbox"]
+    elif day == 3:
+        return ["Make Coffee"]
+    elif day == 4:
+        return ["Make Burgers"]
+    # Days 5-10: 2 random tasks
+    elif 5 <= day <= 10:
+        return random.sample(all_tasks, 2)
+    # Days 11-20: 3 random tasks
+    elif 11 <= day <= 20:
+        return random.sample(all_tasks, 3)
+    # Days 21-30: all 4 tasks in random order
+    else:
+        return random.sample(all_tasks, 4)
 
-# Initialize the TaskList (update position to top left)
+# Replace the tasks initialization with:
+tasks = get_daily_tasks(current_day)
 task_list = TaskList(tasks, game_font, x=10, y=10, color=(255, 255, 255))
 
 # After initializing task_list and before the main game loop
@@ -238,8 +260,12 @@ while running:
         
         # Move task handling to office screen (current_screen == 2)
         if current_screen == 2 and event.type == pygame.KEYDOWN:
-            for task_index, task in enumerate(tasks_for_today):
-                if event.key == pygame.K_1 + task_index and not task_list.is_completed(task_index):
+            for task_index, task in enumerate(tasks):
+                if event.key == pygame.K_1 + task_index:
+                    # Check if this task can be attempted (is next in sequence)
+                    if not task_list.can_attempt_task(task_index):
+                        continue  # Skip if not the current task
+                        
                     if "Typing" in task:
                         cutscene_screen.start("typing")
                         waiting_for_cutscene = True
@@ -333,7 +359,9 @@ while running:
         current_screen = 2
         player.rect.left = 0 + 10
         player.health.decrease(10)
-        task_list.reset_tasks()
+        # Update tasks for the new day
+        tasks = get_daily_tasks(current_day)
+        task_list = TaskList(tasks, game_font, x=10, y=10, color=(255, 255, 255))
         boss.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3)
         coworker.rect.center = (SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2)
 

@@ -7,7 +7,7 @@ class TypingGame:
     def __init__(self, screen, font):
         self.screen = screen
         self.font = font
-        self.time_limit = 55
+        self.time_limit = 50
         self.prompt = self.generate_prompt()
         self.prompt_lines = self.wrap_text(self.prompt, self.screen.get_width() - 100)
         self.start_time = None
@@ -26,7 +26,28 @@ class TypingGame:
             "To add to that idea, we need to be agile with our deliverables. It is essential to stay adaptive in this market. Lets prioritize projects that bring us the highest value in the shortest time frame.",
             "Can we make sure we are all on the same page regarding project timelines? Our goal is to be proactive, not reactive. I would like us to build a timeline that ensures we are meeting all deadlines without bottlenecks.",
             "Just to clarify, our target is to enhance customer experience at every touchpoint. That means aligning our messaging, product, and service quality with customer expectations. It is all about brand consistency and building trust.",
-            "Lets not reinvent the wheel here. We already have a solid foundation, what we need to do is refine and iterate. Focus on quick wins and bring back results in our next sync."
+            "Lets not reinvent the wheel here. We already have a solid foundation, what we need to do is refine and iterate. Focus on quick wins and bring back results in our next sync.",
+            "Our team needs to focus on cross-functional collaboration to drive innovation. By breaking down silos, we can leverage diverse perspectives and expertise to create more effective solutions.",
+            "We should consider implementing a feedback loop to continuously improve our processes. This will allow us to identify areas for improvement and make data-driven decisions to enhance efficiency.",
+            "It's important to maintain a customer-centric approach in all our initiatives. By understanding and addressing customer needs, we can deliver value and build long-term relationships.",
+            "Let's explore opportunities for automation to streamline repetitive tasks. This will free up time for our team to focus on more strategic activities and drive greater impact.",
+            "We need to ensure that our goals are aligned with the company's overall vision and mission. This alignment will help us prioritize initiatives and allocate resources effectively.",
+            "Our team should embrace a growth mindset and be open to learning from failures. By viewing challenges as opportunities for growth, we can foster a culture of innovation and resilience.",
+            "Let's leverage data analytics to gain insights into customer behavior and preferences. This information will enable us to tailor our offerings and improve customer satisfaction.",
+            "We should focus on building a strong brand identity that resonates with our target audience. By clearly communicating our value proposition, we can differentiate ourselves in the market.",
+            "It's crucial to foster a culture of transparency and open communication within our team. This will build trust and ensure that everyone is aligned and working towards common goals.",
+            "Let's explore partnerships and collaborations to expand our reach and capabilities. By working with complementary organizations, we can create synergies and drive mutual success.",
+            "We need to prioritize employee well-being and work-life balance. By supporting our team's health and happiness, we can enhance productivity and reduce turnover.",
+            "Let's focus on developing a robust talent pipeline to ensure we have the skills needed for future growth. By investing in training and development, we can build a high-performing team.",
+            "We should consider implementing a sustainability strategy to minimize our environmental impact. This will not only benefit the planet but also enhance our brand reputation.",
+            "It's important to regularly review and update our risk management framework. By proactively identifying and mitigating risks, we can protect our business and ensure long-term success.",
+            "Let's explore opportunities for digital transformation to enhance our operations. By leveraging technology, we can improve efficiency and deliver a better customer experience.",
+            "We need to ensure that our marketing efforts are data-driven and targeted. By analyzing customer data, we can create personalized campaigns that resonate with our audience.",
+            "Let's focus on building a strong company culture that attracts and retains top talent. By fostering a positive work environment, we can drive employee engagement and performance.",
+            "We should consider implementing a mentorship program to support employee development. By pairing experienced leaders with emerging talent, we can facilitate knowledge sharing and growth.",
+            "It's crucial to stay ahead of industry trends and adapt to changing market conditions. By being agile and responsive, we can seize opportunities and maintain a competitive edge.",
+            "Let's explore opportunities for product diversification to meet evolving customer needs. By expanding our offerings, we can capture new markets and drive revenue growth.",
+            "We need to ensure that our customer service is exceptional and consistent. By providing timely and effective support, we can enhance customer loyalty and satisfaction."
         ]
         return random.choice(prompts)
 

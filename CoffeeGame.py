@@ -67,12 +67,15 @@ class CoffeeGame:
         self.player_image = pygame.transform.scale(self.player_image, (self.GRID_SIZE, self.GRID_SIZE))
         self.cooking_station_image = pygame.image.load("assets/Stove.png")
         self.cooking_station_image = pygame.transform.scale(self.cooking_station_image, (self.GRID_SIZE, self.GRID_SIZE))
-        self.serving_station_image = pygame.image.load("assets/Table.png")
+        self.serving_station_image = pygame.image.load("assets/plate.png")
         self.serving_station_image = pygame.transform.scale(self.serving_station_image, (self.GRID_SIZE, self.GRID_SIZE))
+        self.wood_flooring_image = pygame.image.load("assets/wood_flooring.png")
+        self.wood_flooring_image = pygame.transform.scale(self.wood_flooring_image, (self.GRID_SIZE, self.GRID_SIZE))
+
         self.ingredient_images = {
             "Coffee Beans": pygame.transform.scale(pygame.image.load("assets/CoffeeBean.png"), (self.GRID_SIZE, self.GRID_SIZE)),
             "Sugar": pygame.transform.scale(pygame.image.load("assets/Sugar.png"), (self.GRID_SIZE, self.GRID_SIZE)),
-            "Milk": pygame.transform.scale(pygame.image.load("assets/Milk.png"), (self.GRID_SIZE, self.GRID_SIZE)),
+            "Milk": pygame.transform.scale(pygame.image.load("assets/CowJuice.png"), (self.GRID_SIZE, self.GRID_SIZE)),
             "Creamer": pygame.transform.scale(pygame.image.load("assets/Greek Yogurt.png"), (self.GRID_SIZE, self.GRID_SIZE)),
         }
 
@@ -140,7 +143,7 @@ class CoffeeGame:
                             pygame.time.wait(1000)
 
     def update(self):
-        self.screen.fill((173, 216, 230))
+        self.screen.fill((0, 0, 0))
         self.draw_grid()
         
         # Update brewing process
@@ -168,6 +171,7 @@ class CoffeeGame:
         for row in range(len(self.kitchen_layout)):
             for col in range(len(self.kitchen_layout[0])):
                 x, y = col * self.GRID_SIZE, row * self.GRID_SIZE
+                self.screen.blit(self.wood_flooring_image, (x, y))
                 if self.kitchen_layout[row][col] == 'I':
                     ingredient = self.ingredient_locations.get((row, col), None)
                     if ingredient and ingredient in self.ingredient_images:
@@ -180,7 +184,7 @@ class CoffeeGame:
         
         # Draw timer at the top center
         time_text = f"Time: {int(self.time_remaining)}s"
-        time_surface = self.font.render(time_text, True, (0, 0, 0))
+        time_surface = self.font.render(time_text, True, (255, 255, 255))
         time_rect = time_surface.get_rect(midtop=(self.screen.get_width() // 2, 10))
         self.screen.blit(time_surface, time_rect)
         
@@ -190,23 +194,23 @@ class CoffeeGame:
         
         # Progress
         progress_text = f"Coffees Made: {self.coffees_made}/{self.coffees_to_make}"
-        progress_surface = self.font.render(progress_text, True, (0, 0, 0))
+        progress_surface = self.font.render(progress_text, True, (255, 255, 255))
         self.screen.blit(progress_surface, (x_position, self.screen.get_height() - bottom_margin))
         
         # Required coffee
         required_text = f"Required Coffee: {self.current_coffee_type}"
-        required_surface = self.font.render(required_text, True, (0, 0, 0))
+        required_surface = self.font.render(required_text, True, (255, 255, 255))
         self.screen.blit(required_surface, (x_position, self.screen.get_height() - bottom_margin + 30))
         
         # Held items
         item_text = f"Held Items: {', '.join(self.held_items) if self.held_items else 'None'}"
-        text = self.font.render(item_text, True, (0, 0, 0))
+        text = self.font.render(item_text, True, (255, 255, 255))
         self.screen.blit(text, (x_position, self.screen.get_height() - bottom_margin + 60))
         
         # Recipe ingredients
         ingredients = self.coffee_recipes[self.current_coffee_type]
         ingredients_text = f"Required Ingredients: {', '.join(ingredients)}"
-        ingredients_surface = self.font.render(ingredients_text, True, (0, 0, 0))
+        ingredients_surface = self.font.render(ingredients_text, True, (255, 255, 255))
         self.screen.blit(ingredients_surface, (x_position, self.screen.get_height() - bottom_margin + 90))
 
     def reset_game(self):

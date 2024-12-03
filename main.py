@@ -61,9 +61,9 @@ player_group = pygame.sprite.Group()
 player_group.add(player)
 
 # Create NPCs
-boss = NPC("./assets/player1.png", scale_factor=8, screen_width=SCREEN_WIDTH, screen_height=SCREEN_HEIGHT, 
+boss = NPC("./assets/boss.png", scale_factor=8, screen_width=SCREEN_WIDTH, screen_height=SCREEN_HEIGHT, 
            name="Boss", job_title="Regional Manager")
-coworker = NPC("./assets/player2.png", scale_factor=8, screen_width=SCREEN_WIDTH, screen_height=SCREEN_HEIGHT, 
+coworker = NPC("./assets/coworker.png", scale_factor=8, screen_width=SCREEN_WIDTH, screen_height=SCREEN_HEIGHT, 
                name="Coworker", job_title="Assistant")
 
 # Create NPC group

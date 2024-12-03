@@ -7,7 +7,7 @@ class TypingGame:
     def __init__(self, screen, font):
         self.screen = screen
         self.font = font
-        self.time_limit = 40
+        self.time_limit = 55
         self.prompt = self.generate_prompt()
         self.prompt_lines = self.wrap_text(self.prompt, self.screen.get_width() - 100)
         self.start_time = None

@@ -34,549 +34,177 @@ class NPC(pygame.sprite.Sprite):
         self.interaction_cooldown = 2000
         self.last_interaction = 0
         
-        # Add dialogue options based on NPC type
-        self.dialogues = self.get_dialogues(name)
+        # Add default dialogues based on NPC type
+        if name == "Boss":
+            self.dialogues = [
+                {
+                    "text": "How's that report coming along?",
+                    "options": [
+                        {"text": "Almost done!", "effect": 5},
+                        {"text": "What report?", "effect": -5}
+                    ]
+                },
+                # Add more boss-specific dialogues...
+            ]
+        elif name == "Coworker":
+            self.dialogues = [
+                {
+                    "text": "Did you hear about the new policy?",
+                    "options": [
+                        {"text": "Tell me more!", "effect": 5},
+                        {"text": "Not interested.", "effect": -5}
+                    ]
+                },
+                # Add more coworker-specific dialogues...
+            ]
+        elif name == "Wife":
+            self.dialogues = [
+                {
+                    "text": "How was work today?",
+                    "options": [
+                        {"text": "Let me tell you all about it!", "effect": 5},
+                        {"text": "I don't want to talk about it.", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "Do you remember our anniversary?",
+                    "options": [
+                        {"text": "Of course, I have something special planned!", "effect": 10},
+                        {"text": "Oh no, I forgot...", "effect": -10}
+                    ]
+                },
+                {
+                    "text": "Can we spend some time together this weekend?",
+                    "options": [
+                        {"text": "Absolutely, let's plan something fun!", "effect": 5},
+                        {"text": "I'm too busy this weekend.", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I made your favorite dinner tonight.",
+                    "options": [
+                        {"text": "Thank you, I can't wait to eat!", "effect": 5},
+                        {"text": "I'm not hungry right now.", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I was thinking about redecorating the living room.",
+                    "options": [
+                        {"text": "Great idea, let's do it together!", "effect": 5},
+                        {"text": "I like it the way it is.", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I found a new hobby I want to try.",
+                    "options": [
+                        {"text": "That sounds exciting, tell me more!", "effect": 5},
+                        {"text": "Do we have time for that?", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I feel like we haven't talked much lately.",
+                    "options": [
+                        {"text": "Let's sit down and catch up.", "effect": 5},
+                        {"text": "I've been really busy.", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I saw a movie that I think you'd love.",
+                    "options": [
+                        {"text": "Let's watch it together!", "effect": 5},
+                        {"text": "I'm not interested in movies.", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I need your help with something.",
+                    "options": [
+                        {"text": "Sure, what do you need?", "effect": 5},
+                        {"text": "Can it wait?", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I was thinking about taking a vacation.",
+                    "options": [
+                        {"text": "That sounds wonderful, let's plan it!", "effect": 5},
+                        {"text": "We can't afford that right now.", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I love spending time with you.",
+                    "options": [
+                        {"text": "I love it too!", "effect": 5},
+                        {"text": "I need some space.", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I have a surprise for you.",
+                    "options": [
+                        {"text": "I can't wait to see it!", "effect": 5},
+                        {"text": "I'm not in the mood for surprises.", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I think we should talk about our future.",
+                    "options": [
+                        {"text": "Yes, let's discuss it.", "effect": 5},
+                        {"text": "I'm not ready for that conversation.", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I feel like we need a date night.",
+                    "options": [
+                        {"text": "Let's plan one soon!", "effect": 5},
+                        {"text": "I'm too tired for that.", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I appreciate everything you do for us.",
+                    "options": [
+                        {"text": "Thank you, that means a lot.", "effect": 5},
+                        {"text": "I don't need your appreciation.", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I want to try cooking a new recipe.",
+                    "options": [
+                        {"text": "Let's do it together!", "effect": 5},
+                        {"text": "I'm not interested in cooking.", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I think we should start a new project together.",
+                    "options": [
+                        {"text": "That sounds like a great idea!", "effect": 5},
+                        {"text": "I don't have time for that.", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I feel like we need to reconnect.",
+                    "options": [
+                        {"text": "I agree, let's work on it.", "effect": 5},
+                        {"text": "I think we're fine.", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I want to hear about your day.",
+                    "options": [
+                        {"text": "I'd love to share it with you.", "effect": 5},
+                        {"text": "It's not worth talking about.", "effect": -5}
+                    ]
+                },
+                {
+                    "text": "I think we should have a family meeting.",
+                    "options": [
+                        {"text": "That's a good idea.", "effect": 5},
+                        {"text": "I don't see the point.", "effect": -5}
+                    ]
+                }
+            ]
 
         # Add new variables for relationship monitoring
         self.gossip_threshold = 30  # Relationship must be above this or triggers negative event
         self.has_triggered_gossip = False  # Ensures the event only happens once
         self.has_triggered_argument = False  # For wife
-
-    def get_dialogues(self, name):
-        if name == "Boss":
-            return [
-                {
-                    "prompt": "What's your approach to meeting deadlines?",
-                    "options": [
-                        {"text": "Quality over speed", "effect": -5},
-                        {"text": "Meet deadlines at all costs", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "How do you handle workplace conflicts?",
-                    "options": [
-                        {"text": "Address them immediately", "effect": 5},
-                        {"text": "Let people work it out themselves", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "What's your view on innovation?",
-                    "options": [
-                        {"text": "Stick to proven methods", "effect": 5},
-                        {"text": "Always try new approaches", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "How do you handle criticism?",
-                    "options": [
-                        {"text": "Defend your position", "effect": -5},
-                        {"text": "Accept and reflect", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "What's your stance on overtime?",
-                    "options": [
-                        {"text": "It shows dedication", "effect": 5},
-                        {"text": "Efficiency within hours", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "How do you view workplace competition?",
-                    "options": [
-                        {"text": "It drives improvement", "effect": -5},
-                        {"text": "Collaboration is key", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "What's your take on office politics?",
-                    "options": [
-                        {"text": "Navigate them carefully", "effect": 5},
-                        {"text": "Stay completely neutral", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "How do you handle project setbacks?",
-                    "options": [
-                        {"text": "Find someone accountable", "effect": -5},
-                        {"text": "Focus on solutions", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "What's your view on company traditions?",
-                    "options": [
-                        {"text": "Preserve them", "effect": 5},
-                        {"text": "Update with times", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "How do you approach risk-taking?",
-                    "options": [
-                        {"text": "Calculated risks only", "effect": 5},
-                        {"text": "Bold moves win big", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "What's your stance on remote work?",
-                    "options": [
-                        {"text": "Office presence matters", "effect": 5},
-                        {"text": "Results over location", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "How do you view workplace hierarchy?",
-                    "options": [
-                        {"text": "Essential for order", "effect": 5},
-                        {"text": "Flat structure works better", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "What's your approach to team building?",
-                    "options": [
-                        {"text": "Formal activities", "effect": -5},
-                        {"text": "Natural connections", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "How do you handle disagreements?",
-                    "options": [
-                        {"text": "Stand your ground", "effect": -5},
-                        {"text": "Find middle ground", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "What's your view on workplace changes?",
-                    "options": [
-                        {"text": "Gradual implementation", "effect": 5},
-                        {"text": "Quick adaptation", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "How do you approach deadlines?",
-                    "options": [
-                        {"text": "Extensions if needed", "effect": -5},
-                        {"text": "Meet them no matter what", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "What's your take on workplace feedback?",
-                    "options": [
-                        {"text": "Direct and honest", "effect": 5},
-                        {"text": "Gentle and supportive", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "How do you view work-life balance?",
-                    "options": [
-                        {"text": "Work comes first", "effect": 5},
-                        {"text": "Personal life priority", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "What's your approach to meetings?",
-                    "options": [
-                        {"text": "Quick and focused", "effect": -5},
-                        {"text": "Thorough discussion", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "How do you handle stress?",
-                    "options": [
-                        {"text": "Push through it", "effect": 5},
-                        {"text": "Take breaks", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "What's your view on workplace diversity?",
-                    "options": [
-                        {"text": "Merit-based only", "effect": -5},
-                        {"text": "Active inclusion", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "How do you approach innovation?",
-                    "options": [
-                        {"text": "Careful planning", "effect": 5},
-                        {"text": "Quick experimentation", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "What's your take on workplace rules?",
-                    "options": [
-                        {"text": "Strictly follow them", "effect": 5},
-                        {"text": "Flexible interpretation", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "How do you view success?",
-                    "options": [
-                        {"text": "Individual achievement", "effect": -5},
-                        {"text": "Team accomplishment", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "What's your approach to problems?",
-                    "options": [
-                        {"text": "Methodical analysis", "effect": 5},
-                        {"text": "Quick solutions", "effect": -5}
-                    ]
-                }
-            ]
-        elif name == "Wife":
-            return random.choice([
-                {
-                    "text": "I miss having dinner together like we used to...",
-                    "options": [
-                        {"text": "I miss that too. Let's plan a special dinner this weekend.", "effect": 10},
-                        {"text": "Sorry, I've been really busy with work lately.", "effect": -5}
-                    ]
-                },
-                {
-                    "text": "Do you even remember our anniversary date?",
-                    "options": [
-                        {"text": "Of course! It's next month, right?", "effect": -15},
-                        {"text": "The 15th of June, the happiest day of my life.", "effect": 10}
-                    ]
-                },
-                {
-                    "text": "Your coworker seems to make you laugh more than I do these days...",
-                    "options": [
-                        {"text": "Don't be ridiculous, it's just work friendship.", "effect": -10},
-                        {"text": "You're right, I should be more mindful of boundaries.", "effect": 15}
-                    ]
-                },
-                {
-                    "text": "Maybe we could take a vacation together soon?",
-                    "options": [
-                        {"text": "I can't take time off work right now.", "effect": -10},
-                        {"text": "That's a wonderful idea! Let's start planning.", "effect": 15}
-                    ]
-                },
-                {
-                    "text": "I made your favorite dinner tonight...",
-                    "options": [
-                        {"text": "I'll have to work late again, sorry.", "effect": -15},
-                        {"text": "I'll be home in time, I promise!", "effect": 10}
-                    ]
-                },
-                {
-                    "text": "Remember when we used to go on weekend adventures?",
-                    "options": [
-                        {"text": "Those were fun times! Let's do something this weekend.", "effect": 15},
-                        {"text": "We're not young anymore, things change.", "effect": -10}
-                    ]
-                },
-                {
-                    "text": "I saw you got a raise at work. When were you going to tell me?",
-                    "options": [
-                        {"text": "I was waiting for the right moment to surprise you.", "effect": 10},
-                        {"text": "It's not a big deal, just work stuff.", "effect": -15}
-                    ]
-                },
-                {
-                    "text": "Your mother called. She misses us...",
-                    "options": [
-                        {"text": "Let's invite her over for dinner soon.", "effect": 15},
-                        {"text": "Tell her I'm too busy right now.", "effect": -10}
-                    ]
-                },
-                {
-                    "text": "I feel like we're growing apart...",
-                    "options": [
-                        {"text": "That's just how marriage works sometimes.", "effect": -20},
-                        {"text": "Let's work on this together. I love you.", "effect": 15}
-                    ]
-                },
-                {
-                    "text": "Can we talk about our future plans?",
-                    "options": [
-                        {"text": "Not now, I'm tired from work.", "effect": -15},
-                        {"text": "Of course, our future together is important to me.", "effect": 10}
-                    ]
-                },
-                {
-                    "text": "I bought us concert tickets for next weekend...",
-                    "options": [
-                        {"text": "Perfect! It'll be like our first date.", "effect": 15},
-                        {"text": "I might have to work that day.", "effect": -10}
-                    ]
-                },
-                {
-                    "text": "Do you still find time for us between all your work?",
-                    "options": [
-                        {"text": "I'm doing this all for us.", "effect": -5},
-                        {"text": "You're right, I need to make more time for you.", "effect": 15}
-                    ]
-                },
-                {
-                    "text": "I saw you texting late last night. Was it work again?",
-                    "options": [
-                        {"text": "Yes, just finishing up some projects.", "effect": -10},
-                        {"text": "I should've put the phone away and spent time with you.", "effect": 15}
-                    ]
-                },
-                {
-                    "text": "Remember our dream of traveling the world together?",
-                    "options": [
-                        {"text": "We should start planning our first trip!", "effect": 15},
-                        {"text": "Dreams change as we get older.", "effect": -10}
-                    ]
-                },
-                {
-                    "text": "I cleaned your office space at home...",
-                    "options": [
-                        {"text": "You shouldn't have touched my things.", "effect": -15},
-                        {"text": "Thank you, that was very thoughtful.", "effect": 10}
-                    ]
-                },
-                {
-                    "text": "Can we have breakfast together tomorrow?",
-                    "options": [
-                        {"text": "I have an early meeting.", "effect": -10},
-                        {"text": "I'll make time. I miss our morning talks.", "effect": 15}
-                    ]
-                },
-                {
-                    "text": "Your friends say they hardly see you anymore...",
-                    "options": [
-                        {"text": "Let's host a dinner party this weekend!", "effect": 15},
-                        {"text": "They should understand I'm busy.", "effect": -10}
-                    ]
-                },
-                {
-                    "text": "I got a promotion at my job today!",
-                    "options": [
-                        {"text": "That's nice, dear.", "effect": -15},
-                        {"text": "I'm so proud of you! Let's celebrate!", "effect": 20}
-                    ]
-                },
-                {
-                    "text": "Do you remember why you fell in love with me?",
-                    "options": [
-                        {"text": "Of course, your smile still brightens my day.", "effect": 15},
-                        {"text": "That was a long time ago...", "effect": -20}
-                    ]
-                },
-                {
-                    "text": "I've been thinking about taking dance classes...",
-                    "options": [
-                        {"text": "That sounds like a waste of time.", "effect": -15},
-                        {"text": "We should take them together!", "effect": 15}
-                    ]
-                },
-                {
-                    "text": "Your dad's retirement party is next month...",
-                    "options": [
-                        {"text": "I'll definitely be there, family is important.", "effect": 15},
-                        {"text": "I'll try to make it if work allows.", "effect": -10}
-                    ]
-                },
-                {
-                    "text": "Remember our first apartment together?",
-                    "options": [
-                        {"text": "Yeah, it was tiny but perfect.", "effect": 15},
-                        {"text": "Glad we upgraded from that place.", "effect": -5}
-                    ]
-                },
-                {
-                    "text": "I made plans for us this weekend...",
-                    "options": [
-                        {"text": "You should have checked with me first.", "effect": -15},
-                        {"text": "I can't wait to see what you planned!", "effect": 10}
-                    ]
-                },
-                {
-                    "text": "Do you think we've changed since we got married?",
-                    "options": [
-                        {"text": "Yes, we've grown stronger together.", "effect": 15},
-                        {"text": "Everyone changes, that's life.", "effect": -10}
-                    ]
-                },
-                {
-                    "text": "I miss the little notes you used to leave me...",
-                    "options": [
-                        {"text": "Those were silly anyway.", "effect": -15},
-                        {"text": "I'll start doing that again, just for you.", "effect": 15}
-                    ]
-                }
-            ])
-        else:  # Coworker
-            return [
-                {
-                    "prompt": "How do you feel about office gossip?",
-                    "options": [
-                        {"text": "It builds connections", "effect": -5},
-                        {"text": "Keep things professional", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "What's your lunch break style?",
-                    "options": [
-                        {"text": "Quick and efficient", "effect": -5},
-                        {"text": "Social and relaxed", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "How do you handle tight deadlines?",
-                    "options": [
-                        {"text": "Ask for help", "effect": 5},
-                        {"text": "Handle it alone", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "What's your view on office celebrations?",
-                    "options": [
-                        {"text": "Keep them minimal", "effect": -5},
-                        {"text": "They boost morale", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "How do you approach collaboration?",
-                    "options": [
-                        {"text": "Independent work", "effect": -5},
-                        {"text": "Team effort", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "What's your take on office friendships?",
-                    "options": [
-                        {"text": "Keep it professional", "effect": -5},
-                        {"text": "Build relationships", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "How do you handle workplace stress?",
-                    "options": [
-                        {"text": "Share with colleagues", "effect": 5},
-                        {"text": "Keep it to yourself", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "What's your view on office competition?",
-                    "options": [
-                        {"text": "Healthy motivation", "effect": 5},
-                        {"text": "Unnecessary pressure", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "How do you approach new projects?",
-                    "options": [
-                        {"text": "Dive right in", "effect": -5},
-                        {"text": "Plan thoroughly", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "What's your take on office hours?",
-                    "options": [
-                        {"text": "Strict schedule", "effect": -5},
-                        {"text": "Flexible timing", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "How do you handle mistakes?",
-                    "options": [
-                        {"text": "Learn and move on", "effect": 5},
-                        {"text": "Analyze extensively", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "What's your view on workplace changes?",
-                    "options": [
-                        {"text": "Embrace them", "effect": 5},
-                        {"text": "Prefer stability", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "How do you approach feedback?",
-                    "options": [
-                        {"text": "Welcome it openly", "effect": 5},
-                        {"text": "Prefer autonomy", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "What's your lunch preference?",
-                    "options": [
-                        {"text": "Eat at desk", "effect": -5},
-                        {"text": "Social lunch", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "How do you view workplace communication?",
-                    "options": [
-                        {"text": "Formal channels", "effect": -5},
-                        {"text": "Open dialogue", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "What's your approach to meetings?",
-                    "options": [
-                        {"text": "Active participation", "effect": 5},
-                        {"text": "Listen quietly", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "How do you handle conflicts?",
-                    "options": [
-                        {"text": "Direct discussion", "effect": 5},
-                        {"text": "Avoid confrontation", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "What's your view on office events?",
-                    "options": [
-                        {"text": "Network opportunity", "effect": 5},
-                        {"text": "Optional social time", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "How do you approach deadlines?",
-                    "options": [
-                        {"text": "Last minute rush", "effect": -5},
-                        {"text": "Steady progress", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "What's your take on workplace dress code?",
-                    "options": [
-                        {"text": "Express personality", "effect": 5},
-                        {"text": "Strict professional", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "How do you view team success?",
-                    "options": [
-                        {"text": "Individual effort", "effect": -5},
-                        {"text": "Group achievement", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "What's your approach to learning?",
-                    "options": [
-                        {"text": "Self-directed", "effect": -5},
-                        {"text": "Learn from others", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "How do you handle busy periods?",
-                    "options": [
-                        {"text": "Focus alone", "effect": -5},
-                        {"text": "Collaborate more", "effect": 5}
-                    ]
-                },
-                {
-                    "prompt": "What's your view on workplace recognition?",
-                    "options": [
-                        {"text": "Public praise", "effect": 5},
-                        {"text": "Private acknowledgment", "effect": -5}
-                    ]
-                },
-                {
-                    "prompt": "How do you approach problems?",
-                    "options": [
-                        {"text": "Solve independently", "effect": -5},
-                        {"text": "Seek input", "effect": 5}
-                    ]
-                }
-            ]
 
     def is_near_player(self, player_rect):
         distance = pygame.math.Vector2(
@@ -586,10 +214,22 @@ class NPC(pygame.sprite.Sprite):
         return distance <= self.interaction_radius
 
     def interact(self, relationship_graph):
+        # Add check for empty dialogues
+        if not hasattr(self, 'dialogues') or not self.dialogues:
+            # Return a default dialogue if none exists
+            return {
+                "text": f"Hello! I'm {self.name}.",
+                "options": [
+                    {"text": "Nice to meet you!", "effect": 5},
+                    {"text": "Whatever...", "effect": -5}
+                ]
+            }
+        
         current_time = pygame.time.get_ticks()
         if current_time - self.last_interaction < self.interaction_cooldown:
             return None
 
+        # Select a random dialogue
         dialogue = random.choice(self.dialogues)
         self.last_interaction = current_time
         return dialogue

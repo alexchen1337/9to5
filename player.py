@@ -21,6 +21,9 @@ class Player(pygame.sprite.Sprite):
     
     def update(self, keys_pressed, screen_width, screen_height):
         energyConsumption = 0.05
+        # Store the previous position in case we need to revert
+        previous_y = self.rect.y
+        
         # Horizontal movement
         if keys_pressed[pygame.K_LEFT]:
             self.rect.x -= self.speed
@@ -37,13 +40,14 @@ class Player(pygame.sprite.Sprite):
             self.rect.y += self.speed
             self.energy.decrease(energyConsumption)
 
-        # Boundary checks to prevent moving off-screen
+        # Boundary checks
         if self.rect.left < 0:
             self.rect.left = 0
         if self.rect.right > screen_width:
             self.rect.right = screen_width
-        if self.rect.top < 0:
-            self.rect.top = 0
+        # Add restriction for top 300 pixels
+        if self.rect.top < 200:
+            self.rect.top = 200
         if self.rect.bottom > screen_height:
             self.rect.bottom = screen_height
     def check_meters(self):

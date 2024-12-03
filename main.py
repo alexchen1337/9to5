@@ -71,6 +71,15 @@ npc_group = pygame.sprite.Group()
 npc_group.add(boss)
 npc_group.add(coworker)
 
+# After initializing player and before the main game loop, add:
+# Create wife NPC
+wife = NPC("./assets/wife.png", scale_factor=8, screen_width=SCREEN_WIDTH, screen_height=SCREEN_HEIGHT, 
+           name="Wife", job_title="Spouse")
+
+# Create home NPC group
+home_npc_group = pygame.sprite.Group()
+home_npc_group.add(wife)
+
 # Adjust the font size for meters (at the top with other font definitions)
 meter_font_size = 18  # Smaller font for meters
 meter_font = pygame.font.Font(font_path, meter_font_size)
@@ -378,6 +387,41 @@ def check_boss_relationship(relationship_graph, player, cutscene_screen):
     
     return True
 
+def handle_wife_relationship(relationship_graph, player, cutscene_screen):
+    wife_relationship = relationship_graph.get_relationship("player", "wife")
+    coworker_relationship = relationship_graph.get_relationship("player", "coworker")
+    
+    # Check if coworker relationship is significantly better than wife relationship
+    if coworker_relationship > wife_relationship + 20 and not hasattr(wife, 'has_caught_flirting'):
+        wife.has_caught_flirting = True  # Add this attribute to prevent repeated triggers
+        
+        # Play cutscene
+        cutscene_screen.start("wife_catches_flirting")
+        waiting_for_cutscene = True
+        while waiting_for_cutscene:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return False, "Game ended."
+                if cutscene_screen.update(event):
+                    waiting_for_cutscene = False
+            cutscene_screen.draw()
+            pygame.display.flip()
+        
+        print("Your wife caught you flirting with your coworker!")
+        relationship_graph.set_relationship("player", "wife", 10)  # Set wife relationship to 10
+        relationship_graph.decrease_relationship("player", "coworker", 20)  # Optional: also decrease coworker relationship
+    
+    if wife_relationship < 50 and not wife.has_triggered_argument:
+        wife.has_triggered_argument = True
+        print(f"Your wife feels neglected. You had an argument about work-life balance.")
+        player.health.decrease(20)
+        player.energy.decrease(20)
+    
+    if wife_relationship <= 0:
+        return False, "Your marriage fell apart due to neglect. Game Over."
+    
+    return True, ""
+
 while running:
     # Add this check with the other loss conditions at the start of the loop
     if(player.checkings.get_value() <= 0):
@@ -532,6 +576,11 @@ while running:
         relationship_graph.decrease_relationship("player", "coworker", 5)  # Lose 5 points per day
         print(f"Your coworker feels neglected. Relationship decreased to {relationship_graph.get_relationship('player', 'coworker')}")
         
+        # Decrease wife relationship at end of each day
+        current_relationship = relationship_graph.get_relationship("player", "wife")
+        relationship_graph.decrease_relationship("player", "wife", 5)  # Lose 5 points per day
+        print(f"Your wife misses you. Relationship decreased to {relationship_graph.get_relationship('player', 'wife')}")
+        
         current_screen = 1
         player.rect.right = SCREEN_WIDTH - 10
         current_day += 1
@@ -541,6 +590,63 @@ while running:
         background_image = pygame.image.load('./assets/HomeScreen.png')
         background_image = pygame.transform.scale(background_image, (1280, 720))
         screen.blit(background_image, (0,0))
+        
+        # Update and draw wife NPC
+        home_npc_group.update(SCREEN_WIDTH, SCREEN_HEIGHT, player.rect)
+        home_npc_group.draw(screen)
+        
+        # Draw relationship bar and name for wife
+        for npc in home_npc_group:
+            npc.draw_minibar(screen, relationship_graph, npc.name.lower())
+            npc.draw_name(screen)
+            
+            # Check for interaction
+            if npc.is_near_player(player.rect):
+                npc.draw_interaction_prompt(screen, game_font)
+                
+                if keys_pressed[pygame.K_RETURN]:
+                    dialogue = npc.interact(relationship_graph)
+                    if dialogue:  # Only show if interaction cooldown has passed
+                        waiting_for_choice = True
+                        show_result = None
+                        result_timer = 0
+                        
+                        while waiting_for_choice:
+                            for event in pygame.event.get():
+                                if event.type == pygame.QUIT:
+                                    running = False
+                                    waiting_for_choice = False
+                                elif event.type == pygame.KEYDOWN:
+                                    if event.key in [pygame.K_1, pygame.K_2]:
+                                        choice_idx = 0 if event.key == pygame.K_1 else 1
+                                        effect = dialogue['options'][choice_idx]['effect']
+                                        
+                                        # Determine if it was a good choice
+                                        show_result = effect > 0
+                                        
+                                        if effect > 0:
+                                            relationship_graph.increase_relationship("player", npc.name.lower(), abs(effect))
+                                        else:
+                                            relationship_graph.decrease_relationship("player", npc.name.lower(), abs(effect))
+                                        
+                                        result_timer = pygame.time.get_ticks()
+                                        
+                            # Draw the game state
+                            screen.blit(background_image, (0,0))
+                            player_group.draw(screen)
+                            home_npc_group.draw(screen)
+                            
+                            # Draw dialogue box with result if available
+                            npc.draw_dialogue_box(screen, game_font, dialogue, show_result)
+                            
+                            pygame.display.flip()
+                            
+                            # If showing result, wait 2 seconds then close
+                            if show_result is not None:
+                                if pygame.time.get_ticks() - result_timer > 2000:  # 2 seconds
+                                    waiting_for_choice = False
+                            
+                            clock.tick(FPS)
     elif (current_screen == 2):
         screen.blit(office_background, (0,0))
         task_list.draw(screen)  # Move task list to work screen
@@ -645,6 +751,11 @@ while running:
             running = False  # Only end if there's a quit event
         if not check_boss_relationship(relationship_graph, player, cutscene_screen):
             running = False
+    # Add wife relationship check (happens on both screens)
+    should_continue, game_end_text = handle_wife_relationship(relationship_graph, player, cutscene_screen)
+    if not should_continue:
+        running = False
+        end_text = game_end_text
 
 # Create and display the intro screen
 end_screen = EndScreen(screen, selected_sprite)

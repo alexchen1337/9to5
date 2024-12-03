@@ -71,6 +71,17 @@ class CutsceneScreen:
                 "Your boss seems particularly upset today...",
                 "You can feel the tension in the air...",
                 "Something bad is about to happen..."
+            ],
+            "wife_argument": [
+                "Your wife is upset about your work-life balance...",
+                "She feels like you're never home anymore...",
+                "Maybe you should try to spend more time with her?"
+            ],
+            "wife_catches_flirting": [
+                "Your wife has walked in to the office...",
+                "She caught you flirting with your co-worker!",
+                "She's furious and storms out of the office.",
+                "You better fix this quickly!"
             ]
         }
         

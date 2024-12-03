@@ -121,10 +121,10 @@ class SandwichGame:
                 elif self.kitchen_layout[self.player_y][self.player_x] == 'C' and "Patty" in self.held_items:
                     if not self.is_cooking:
                         cooked_items_tuple = tuple(sorted(self.held_items))
-                        if cooked_items_tuple in self.cook_titles:
+                        if cooked_items_tuple in self.burger_titles:
                             self.is_cooking = True
                             self.cook_start_time = time.time()
-                            print(f"Starting to cook: {self.cook_titles[cooked_items_tuple]}")
+                            print(f"Starting to cook: {self.burger_titles[cooked_items_tuple]}")
                         else:
                             self.show_result_message("The burger you are trying to make does not exist!", (255, 165, 0))
                             pygame.time.wait(1000)
@@ -158,7 +158,7 @@ class SandwichGame:
         if self.is_cooking and time.time() - self.cook_start_time >= self.COOK_TIME:
             self.is_cooking = False
             cooked_items_tuple = tuple(sorted(self.held_items))
-            title = self.cook_titles.get(cooked_items_tuple)
+            title = self.burger_titles.get(cooked_items_tuple)
             print(f"Finished cooking: {title}")
             self.held_items = [title]  # Replace ingredients with cooked burger
             self.show_result_message("Burger cooked!", (0, 255, 0))

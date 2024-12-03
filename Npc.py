@@ -38,10 +38,178 @@ class NPC(pygame.sprite.Sprite):
         if name == "Boss":
             self.dialogues = [
                 {
-                    "text": "How's that report coming along?",
+                    "prompt": "What's your approach to meeting deadlines?",
                     "options": [
-                        {"text": "Almost done!", "effect": 5},
-                        {"text": "What report?", "effect": -5}
+                        {"text": "Quality over speed", "effect": -5},
+                        {"text": "Meet deadlines at all costs", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "How do you handle workplace conflicts?",
+                    "options": [
+                        {"text": "Address them immediately", "effect": 5},
+                        {"text": "Let people work it out themselves", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "What's your view on innovation?",
+                    "options": [
+                        {"text": "Stick to proven methods", "effect": 5},
+                        {"text": "Always try new approaches", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "How do you handle criticism?",
+                    "options": [
+                        {"text": "Defend your position", "effect": -5},
+                        {"text": "Accept and reflect", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "What's your stance on overtime?",
+                    "options": [
+                        {"text": "It shows dedication", "effect": 5},
+                        {"text": "Efficiency within hours", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "How do you view workplace competition?",
+                    "options": [
+                        {"text": "It drives improvement", "effect": -5},
+                        {"text": "Collaboration is key", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "What's your take on office politics?",
+                    "options": [
+                        {"text": "Navigate them carefully", "effect": 5},
+                        {"text": "Stay completely neutral", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "How do you handle project setbacks?",
+                    "options": [
+                        {"text": "Find someone accountable", "effect": -5},
+                        {"text": "Focus on solutions", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "What's your view on company traditions?",
+                    "options": [
+                        {"text": "Preserve them", "effect": 5},
+                        {"text": "Update with times", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "How do you approach risk-taking?",
+                    "options": [
+                        {"text": "Calculated risks only", "effect": 5},
+                        {"text": "Bold moves win big", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "What's your stance on remote work?",
+                    "options": [
+                        {"text": "Office presence matters", "effect": 5},
+                        {"text": "Results over location", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "How do you view workplace hierarchy?",
+                    "options": [
+                        {"text": "Essential for order", "effect": 5},
+                        {"text": "Flat structure works better", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "What's your approach to team building?",
+                    "options": [
+                        {"text": "Formal activities", "effect": -5},
+                        {"text": "Natural connections", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "How do you handle disagreements?",
+                    "options": [
+                        {"text": "Stand your ground", "effect": -5},
+                        {"text": "Find middle ground", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "What's your view on workplace changes?",
+                    "options": [
+                        {"text": "Gradual implementation", "effect": 5},
+                        {"text": "Quick adaptation", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "How do you approach deadlines?",
+                    "options": [
+                        {"text": "Extensions if needed", "effect": -5},
+                        {"text": "Meet them no matter what", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "What's your take on workplace feedback?",
+                    "options": [
+                        {"text": "Direct and honest", "effect": 5},
+                        {"text": "Gentle and supportive", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "How do you view work-life balance?",
+                    "options": [
+                        {"text": "Work comes first", "effect": 5},
+                        {"text": "Personal life priority", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "What's your approach to meetings?",
+                    "options": [
+                        {"text": "Quick and focused", "effect": -5},
+                        {"text": "Thorough discussion", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "How do you handle stress?",
+                    "options": [
+                        {"text": "Push through it", "effect": 5},
+                        {"text": "Take breaks", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "What's your view on workplace diversity?",
+                    "options": [
+                        {"text": "Merit-based only", "effect": -5},
+                        {"text": "Active inclusion", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "How do you approach innovation?",
+                    "options": [
+                        {"text": "Careful planning", "effect": 5},
+                        {"text": "Quick experimentation", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "What's your take on workplace rules?",
+                    "options": [
+                        {"text": "Strictly follow them", "effect": 5},
+                        {"text": "Flexible interpretation", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "How do you view success?",
+                    "options": [
+                        {"text": "Individual achievement", "effect": -5},
+                        {"text": "Team accomplishment", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "What's your approach to problems?",
+                    "options": [
+                        {"text": "Methodical analysis", "effect": 5},
+                        {"text": "Quick solutions", "effect": -5}
                     ]
                 },
                 # Add more boss-specific dialogues...
@@ -49,13 +217,180 @@ class NPC(pygame.sprite.Sprite):
         elif name == "Coworker":
             self.dialogues = [
                 {
-                    "text": "Did you hear about the new policy?",
+                    "prompt": "How do you feel about office gossip?",
                     "options": [
-                        {"text": "Tell me more!", "effect": 5},
-                        {"text": "Not interested.", "effect": -5}
+                        {"text": "It builds connections", "effect": -5},
+                        {"text": "Keep things professional", "effect": 5}
                     ]
                 },
-                # Add more coworker-specific dialogues...
+                {
+                    "prompt": "What's your lunch break style?",
+                    "options": [
+                        {"text": "Quick and efficient", "effect": -5},
+                        {"text": "Social and relaxed", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "How do you handle tight deadlines?",
+                    "options": [
+                        {"text": "Ask for help", "effect": 5},
+                        {"text": "Handle it alone", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "What's your view on office celebrations?",
+                    "options": [
+                        {"text": "Keep them minimal", "effect": -5},
+                        {"text": "They boost morale", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "How do you approach collaboration?",
+                    "options": [
+                        {"text": "Independent work", "effect": -5},
+                        {"text": "Team effort", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "What's your take on office friendships?",
+                    "options": [
+                        {"text": "Keep it professional", "effect": -5},
+                        {"text": "Build relationships", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "How do you handle workplace stress?",
+                    "options": [
+                        {"text": "Share with colleagues", "effect": 5},
+                        {"text": "Keep it to yourself", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "What's your view on office competition?",
+                    "options": [
+                        {"text": "Healthy motivation", "effect": 5},
+                        {"text": "Unnecessary pressure", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "How do you approach new projects?",
+                    "options": [
+                        {"text": "Dive right in", "effect": -5},
+                        {"text": "Plan thoroughly", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "What's your take on office hours?",
+                    "options": [
+                        {"text": "Strict schedule", "effect": -5},
+                        {"text": "Flexible timing", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "How do you handle mistakes?",
+                    "options": [
+                        {"text": "Learn and move on", "effect": 5},
+                        {"text": "Analyze extensively", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "What's your view on workplace changes?",
+                    "options": [
+                        {"text": "Embrace them", "effect": 5},
+                        {"text": "Prefer stability", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "How do you approach feedback?",
+                    "options": [
+                        {"text": "Welcome it openly", "effect": 5},
+                        {"text": "Prefer autonomy", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "What's your lunch preference?",
+                    "options": [
+                        {"text": "Eat at desk", "effect": -5},
+                        {"text": "Social lunch", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "How do you view workplace communication?",
+                    "options": [
+                        {"text": "Formal channels", "effect": -5},
+                        {"text": "Open dialogue", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "What's your approach to meetings?",
+                    "options": [
+                        {"text": "Active participation", "effect": 5},
+                        {"text": "Listen quietly", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "How do you handle conflicts?",
+                    "options": [
+                        {"text": "Direct discussion", "effect": 5},
+                        {"text": "Avoid confrontation", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "What's your view on office events?",
+                    "options": [
+                        {"text": "Network opportunity", "effect": 5},
+                        {"text": "Optional social time", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "How do you approach deadlines?",
+                    "options": [
+                        {"text": "Last minute rush", "effect": -5},
+                        {"text": "Steady progress", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "What's your take on workplace dress code?",
+                    "options": [
+                        {"text": "Express personality", "effect": 5},
+                        {"text": "Strict professional", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "How do you view team success?",
+                    "options": [
+                        {"text": "Individual effort", "effect": -5},
+                        {"text": "Group achievement", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "What's your approach to learning?",
+                    "options": [
+                        {"text": "Self-directed", "effect": -5},
+                        {"text": "Learn from others", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "How do you handle busy periods?",
+                    "options": [
+                        {"text": "Focus alone", "effect": -5},
+                        {"text": "Collaborate more", "effect": 5}
+                    ]
+                },
+                {
+                    "prompt": "What's your view on workplace recognition?",
+                    "options": [
+                        {"text": "Public praise", "effect": 5},
+                        {"text": "Private acknowledgment", "effect": -5}
+                    ]
+                },
+                {
+                    "prompt": "How do you approach problems?",
+                    "options": [
+                        {"text": "Solve independently", "effect": -5},
+                        {"text": "Seek input", "effect": 5}
+                    ]
+                },
             ]
         elif name == "Wife":
             self.dialogues = [

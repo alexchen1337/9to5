@@ -716,7 +716,9 @@ class NPC(pygame.sprite.Sprite):
         
         # Render dialogue text
         text_color = (255, 255, 255)
-        prompt_text = font.render(dialogue['prompt'], True, text_color)
+        # Use 'text' key for wife dialogue and 'prompt' for others
+        dialogue_text = dialogue.get('text', dialogue.get('prompt'))
+        prompt_text = font.render(dialogue_text, True, text_color)
         screen.blit(prompt_text, (box_x + 20, box_y + 20))
         
         # If showing result
